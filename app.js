@@ -38,8 +38,8 @@ document.querySelectorAll('[data-page]').forEach(a => {
 function changeDate(delta) {
   const d = fromDateString(currentDate);
   d.setDate(d.getDate() + delta);
-  // Don't allow future dates
-  if (d > new Date()) return;
+  // Don't allow future dates (compare date strings to avoid time-of-day issues)
+  if (toDateString(d) > toDateString(new Date())) return;
   currentDate = toDateString(d);
   updateDateLabels();
   refreshPage(currentPage);
@@ -448,6 +448,9 @@ document.getElementById('scan-capture-btn').addEventListener('click', () => {
   // Stop camera
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   video.style.display = 'none';
+
+  // Clear any previously uploaded file so camera capture is used for analysis
+  document.getElementById('scan-analyze-btn')._file = null;
 
   // Show preview
   const img = document.getElementById('scan-preview-img');

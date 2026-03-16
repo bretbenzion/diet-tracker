@@ -162,6 +162,7 @@ function updateCalorieRing(consumed, goal) {
   const ring = document.getElementById('calorie-ring');
   if (!ring) return;
   const circ = 2 * Math.PI * 68;
+  ring.style.strokeDasharray = circ;
   const pct = goal > 0 ? Math.min(consumed / goal, 1) : 0;
   const offset = circ - pct * circ;
   ring.style.strokeDashoffset = offset;
@@ -196,15 +197,11 @@ function updateMacroBar(macro, value, target, dir) {
   const card = bar.closest('.macro-card');
   if (!card) return;
   const over = value > target && target > 0;
-  const under = value < target * 0.9 && target > 0;
 
-  if (macro === 'protein') {
-    // min target: good when >=, warn when <
-    bar.style.opacity = dir === 'min' && under ? '0.5' : '1';
-  } else {
-    bar.style.opacity = over ? '1' : '1';
-    if (over && dir === 'max') bar.style.background = 'var(--accent)';
-    else bar.style.background = '';
+  // Always reset first, then apply override color if over-budget on a max target
+  bar.style.background = '';
+  if (over && dir === 'max') {
+    bar.style.background = 'var(--accent)';
   }
 }
 

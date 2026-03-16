@@ -175,13 +175,14 @@ const Store = {
     const all = this._get(KEYS.LOG, {});
     const seen = new Map();
     const dates = Object.keys(all).sort((a,b) => b.localeCompare(a));
-    for (const date of dates) {
+    outer: for (const date of dates) {
       for (const entry of (all[date] || [])) {
         const key = entry.name.toLowerCase().trim();
-        if (!seen.has(key)) seen.set(key, entry);
-        if (seen.size >= limit) break;
+        if (!seen.has(key)) {
+          seen.set(key, entry);
+          if (seen.size >= limit) break outer;
+        }
       }
-      if (seen.size >= limit) break;
     }
     return [...seen.values()];
   },
