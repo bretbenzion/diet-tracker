@@ -32,8 +32,6 @@ function renderWeightChart(entries, rangeDays = 30) {
   }
 
   // Set explicit pixel height so Chart.js fills it correctly
-  canvas.style.height = '320px';
-  canvas.height = 320;
 
   const labels = filtered.map(e => {
     const d = new Date(e.date + 'T00:00:00');
