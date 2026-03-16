@@ -85,8 +85,6 @@ function refreshPage(page) {
 function refreshDashboard() {
   const totals  = Store.getDayTotals(currentDate);
   const targets = Store.getTargets();
-  const entries = Store.getLog(currentDate);
-  const weights = Store.getWeightEntries();
 
   // Ring
   updateCalorieRing(totals.cal, targets.cal || 0);
@@ -95,12 +93,6 @@ function refreshDashboard() {
   updateMacroBar('protein', totals.protein, targets.protein, targets.proteinDir || 'min');
   updateMacroBar('carbs',   totals.carbs,   targets.carbs,   targets.carbsDir   || 'max');
   updateMacroBar('fat',     totals.fat,     targets.fat,     targets.fatDir     || 'max');
-
-  // Food preview
-  renderFoodPreviewRows(entries, document.getElementById('dash-food-list'));
-
-  // Mini chart
-  renderMiniWeightChart(weights);
 }
 
 // ─────────────────────────────────────────────────────
@@ -212,7 +204,7 @@ function openAddFoodModal() {
   openModal('modal-add-food');
 }
 
-['quick-add-btn', 'log-add-food-btn'].forEach(id => {
+['log-add-food-btn'].forEach(id => {
   const btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', openAddFoodModal);
 });
@@ -352,6 +344,7 @@ document.getElementById('manual-food-form').addEventListener('submit', e => {
 
   closeModal('modal-add-food');
   refreshPage(currentPage);
+  refreshFoodLibrary(); // always sync library view regardless of current page
   showToast(`${name} added!`, 'success');
   document.getElementById('manual-food-form').reset();
 });
@@ -627,31 +620,32 @@ document.querySelectorAll('.range-btn').forEach(btn => {
 
 // Log weight
 function openLogWeightModal(dateStr) {
+  openModal('modal-log-weight');
+  // Set values after modal is visible — some browsers reject programmatic
+  // value assignment on date inputs while the element is hidden
   const targets = Store.getTargets();
   const unit = targets.weightUnit || 'lbs';
   document.getElementById('weight-unit-label').textContent = unit;
-  // Always fall back to today if no date provided
-  const date = dateStr || toDateString(new Date());
-  document.getElementById('weight-date-input').value = date;
+  document.getElementById('weight-date-input').value = dateStr || toDateString(new Date());
   document.getElementById('weight-value-input').value = '';
-  openModal('modal-log-weight');
+  document.getElementById('weight-value-input').focus();
 }
 
-['log-weight-btn', 'add-weight-entry-btn'].forEach(id => {
+['add-weight-entry-btn'].forEach(id => {
   const btn = document.getElementById(id);
   if (btn) btn.addEventListener('click', () => openLogWeightModal(currentDate));
 });
 
 document.getElementById('confirm-weight-btn').addEventListener('click', () => {
-  const date = document.getElementById('weight-date-input').value;
-  const val = parseFloat(document.getElementById('weight-value-input').value);
-  if (!date || isNaN(val) || val <= 0) { showToast('Please enter a valid weight', 'error'); return; }
+  const dateEl = document.getElementById('weight-date-input');
+  const valEl  = document.getElementById('weight-value-input');
+  const date   = dateEl.value || toDateString(new Date());
+  const val    = parseFloat(valEl.value);
+  if (isNaN(val) || val <= 0) { showToast('Please enter a valid weight', 'error'); return; }
   const targets = Store.getTargets();
   Store.addWeightEntry(date, val, targets.weightUnit || 'lbs');
   closeModal('modal-log-weight');
   refreshPage(currentPage);
-  // Always sync the mini chart in case user is on dashboard
-  renderMiniWeightChart(Store.getWeightEntries());
   showToast('Weight logged!', 'success');
 });
 
@@ -881,17 +875,6 @@ document.getElementById('clear-data-btn').addEventListener('click', () => {
   Store.clearAll();
   showToast('All data cleared');
   refreshPage(currentPage);
-});
-
-// ─────────────────────────────────────────────────────
-// DASHBOARD quick actions
-// ─────────────────────────────────────────────────────
-document.getElementById('dash-food-list').addEventListener('click', e => {
-  const row = e.target.closest('[data-id]');
-  if (row) {
-    // Navigate to log page
-    navigateTo('log');
-  }
 });
 
 // ─────────────────────────────────────────────────────
