@@ -9,8 +9,8 @@ const STATIC = [
   '/diet-tracker/ai.js',
   '/diet-tracker/app.js',
   '/diet-tracker/manifest.json',
-  '/diet-tracker/icons/icon-192.png',
-  '/diet-tracker/icons/icon-512.png',
+  '/diet-tracker/icon-192.png',
+  '/diet-tracker/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
 
