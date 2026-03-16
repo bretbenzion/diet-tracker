@@ -7,12 +7,12 @@ const CACHE_NAME = 'nutritrack-v1';
 const ASSETS = [
   '/',
   '/index.html',
-  '/css/main.css',
-  '/js/store.js',
-  '/js/ui.js',
-  '/js/charts.js',
-  '/js/ai.js',
-  '/js/app.js',
+  '/main.css',
+  '/store.js',
+  '/ui.js',
+  '/charts.js',
+  '/ai.js',
+  '/app.js',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
