@@ -3,17 +3,17 @@
  * Provides offline capability and asset caching.
  */
 
-const CACHE_NAME = 'nutritrack-v1';
+const CACHE_NAME = 'nutritrack-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/main.css',
-  '/store.js',
-  '/ui.js',
-  '/charts.js',
-  '/ai.js',
-  '/app.js',
-  '/manifest.json',
+  '/diet-tracker/',
+  '/diet-tracker/index.html',
+  '/diet-tracker/main.css',
+  '/diet-tracker/store.js',
+  '/diet-tracker/ui.js',
+  '/diet-tracker/charts.js',
+  '/diet-tracker/ai.js',
+  '/diet-tracker/app.js',
+  '/diet-tracker/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
 
@@ -45,7 +45,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }
         return response;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => caches.match('/diet-tracker/index.html'));
     })
   );
 });

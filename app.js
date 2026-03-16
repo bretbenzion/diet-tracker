@@ -856,7 +856,7 @@ document.getElementById('dash-food-list').addEventListener('click', e => {
 // ─────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => {
+    navigator.serviceWorker.register('/diet-tracker/sw.js', { scope: '/diet-tracker/' }).catch(err => {
       console.warn('SW registration failed:', err);
     });
   });
