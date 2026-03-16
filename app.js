@@ -540,12 +540,21 @@ document.getElementById('scan-analyze-btn').addEventListener('click', async () =
 });
 
 // ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────
 // WEIGHT PAGE
 // ─────────────────────────────────────────────────────
 function refreshWeightPage() {
-  const entries = Store.getWeightEntries();
   const targets = Store.getTargets();
-  const unit = targets.weightUnit || 'lbs';
+  const unit    = targets.weightUnit || 'lbs';
+  const entries = Store.getWeightEntries();
+
+  // Keep the unit label in sync with targets
+  document.getElementById('weight-unit-label').textContent = unit;
+
+  // Default date input to today
+  if (!document.getElementById('weight-date-input').value) {
+    document.getElementById('weight-date-input').value = toDateString(new Date());
+  }
 
   renderWeightChart(entries, weightChartRange);
   renderWeightStats(entries, unit);
@@ -553,57 +562,55 @@ function refreshWeightPage() {
 }
 
 function renderWeightStats(entries, unit) {
+  const ids = ['stat-current', 'stat-start', 'stat-change', 'stat-avg'];
   if (!entries.length) {
-    ['stat-current','stat-start','stat-change','stat-avg'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = '—';
-    });
+    ids.forEach(id => { document.getElementById(id).textContent = '—'; });
     return;
   }
   const current = entries[entries.length - 1].value;
-  const start = entries[0].value;
-  const avg = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-  const change = current - start;
+  const start   = entries[0].value;
+  const avg     = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+  const change  = current - start;
 
   document.getElementById('stat-current').textContent = `${current} ${unit}`;
   document.getElementById('stat-start').textContent   = `${start} ${unit}`;
   document.getElementById('stat-change').textContent  = `${change > 0 ? '+' : ''}${round1(change)} ${unit}`;
   document.getElementById('stat-avg').textContent     = `${round1(avg)} ${unit}`;
-
-  document.getElementById('stat-change').style.color =
+  document.getElementById('stat-change').style.color  =
     change < 0 ? 'var(--green)' : change > 0 ? 'var(--accent)' : 'inherit';
 }
 
 function renderWeightLog(entries, unit) {
   const container = document.getElementById('weight-log-list');
   if (!entries.length) {
-    container.innerHTML = '<p class="empty-state">No weight entries yet.</p>';
+    container.innerHTML = '<p class="empty-state">No entries yet.</p>';
     return;
   }
-
   const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
   container.innerHTML = sorted.map((e, i) => {
-    const prev = sorted[i + 1];
-    let changeTxt = '';
-    let changeClass = '';
-    if (prev) {
-      const delta = e.value - prev.value;
-      changeTxt = `${delta > 0 ? '+' : ''}${round1(delta)} ${unit}`;
-      changeClass = delta < 0 ? 'neg' : delta > 0 ? 'pos' : '';
-    }
+    const prev  = sorted[i + 1];
+    const delta = prev ? e.value - prev.value : null;
+    const deltaTxt = delta !== null
+      ? `<span class="weight-log-change ${delta < 0 ? 'neg' : delta > 0 ? 'pos' : ''}">${delta > 0 ? '+' : ''}${round1(delta)} ${unit}</span>`
+      : '';
     return `
       <div class="weight-log-row" data-id="${e.id}">
         <span class="weight-log-date">${formatDisplayDate(e.date)}</span>
         <div style="display:flex;gap:14px;align-items:center;">
-          ${changeTxt ? `<span class="weight-log-change ${changeClass}">${changeTxt}</span>` : ''}
+          ${deltaTxt}
           <span class="weight-log-val">${e.value} ${unit}</span>
+          <button class="btn-danger" style="padding:4px 10px;font-size:12px;" data-delete-id="${e.id}">✕</button>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
-  container.querySelectorAll('.weight-log-row').forEach(row => {
-    row.addEventListener('click', () => openEditWeight(row.dataset.id));
+  container.querySelectorAll('[data-delete-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      Store.deleteWeightEntry(btn.dataset.deleteId);
+      refreshWeightPage();
+      showToast('Entry deleted');
+    });
   });
 }
 
@@ -613,67 +620,24 @@ document.querySelectorAll('.range-btn').forEach(btn => {
     document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     weightChartRange = parseInt(btn.dataset.range);
-    const entries = Store.getWeightEntries();
-    renderWeightChart(entries, weightChartRange);
+    renderWeightChart(Store.getWeightEntries(), weightChartRange);
   });
 });
 
-// Log weight
-function openLogWeightModal(dateStr) {
-  openModal('modal-log-weight');
-  // Set values after modal is visible — some browsers reject programmatic
-  // value assignment on date inputs while the element is hidden
-  const targets = Store.getTargets();
-  const unit = targets.weightUnit || 'lbs';
-  document.getElementById('weight-unit-label').textContent = unit;
-  document.getElementById('weight-date-input').value = dateStr || toDateString(new Date());
-  document.getElementById('weight-value-input').value = '';
-  document.getElementById('weight-value-input').focus();
-}
-
-['add-weight-entry-btn'].forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) btn.addEventListener('click', () => openLogWeightModal(currentDate));
-});
-
-document.getElementById('log-weight-form').addEventListener('submit', () => {
-  const date = document.getElementById('weight-date-input').value || toDateString(new Date());
+// Inline log form — always visible on the weight page, no modal
+document.getElementById('log-weight-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const date = document.getElementById('weight-date-input').value;
   const val  = parseFloat(document.getElementById('weight-value-input').value);
+
+  if (!date) { showToast('Please select a date', 'error'); return; }
   if (isNaN(val) || val <= 0) { showToast('Please enter a valid weight', 'error'); return; }
-  const targets = Store.getTargets();
-  Store.addWeightEntry(date, val, targets.weightUnit || 'lbs');
-  closeModal('modal-log-weight');
-  refreshPage(currentPage);
+
+  const unit = Store.getTargets().weightUnit || 'lbs';
+  Store.addWeightEntry(date, val, unit);
+  document.getElementById('weight-value-input').value = '';
+  refreshWeightPage();
   showToast('Weight logged!', 'success');
-});
-
-function openEditWeight(id) {
-  const entries = Store.getWeightEntries();
-  const entry = entries.find(e => e.id === id);
-  if (!entry) return;
-  editingWeightId = id;
-  const targets = Store.getTargets();
-  openModal('modal-edit-weight');
-  document.getElementById('edit-weight-unit-label').textContent = targets.weightUnit || 'lbs';
-  document.getElementById('edit-weight-date').value = entry.date;
-  document.getElementById('edit-weight-value').value = entry.value;
-}
-
-document.getElementById('edit-weight-form').addEventListener('submit', () => {
-  const date = document.getElementById('edit-weight-date').value;
-  const val = parseFloat(document.getElementById('edit-weight-value').value);
-  if (!date || isNaN(val)) { showToast('Invalid input', 'error'); return; }
-  Store.updateWeightEntry(editingWeightId, { date, value: val });
-  closeModal('modal-edit-weight');
-  refreshWeightPage();
-  showToast('Updated!', 'success');
-});
-
-document.getElementById('delete-weight-btn').addEventListener('click', () => {
-  Store.deleteWeightEntry(editingWeightId);
-  closeModal('modal-edit-weight');
-  refreshWeightPage();
-  showToast('Entry deleted');
 });
 
 // ─────────────────────────────────────────────────────

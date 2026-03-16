@@ -156,10 +156,24 @@
           <div>
             <h1 class="page-title">Weight Tracker</h1>
           </div>
-          <div class="header-actions">
-            <button class="btn-primary" id="add-weight-entry-btn">+ Log Weight</button>
-          </div>
         </header>
+
+        <!-- Inline log form — no modal, no hidden inputs -->
+        <div class="card" style="margin-bottom:16px;">
+          <form id="log-weight-form">
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+              <div class="form-group" style="margin:0;flex:1;min-width:130px;">
+                <label>Date</label>
+                <input type="date" id="weight-date-input" class="form-input" />
+              </div>
+              <div class="form-group" style="margin:0;flex:1;min-width:130px;">
+                <label>Weight (<span id="weight-unit-label">lbs</span>)</label>
+                <input type="number" id="weight-value-input" class="form-input" step="0.1" min="1" placeholder="e.g. 175.5" />
+              </div>
+              <button type="submit" class="btn-primary" style="margin-bottom:1px;">Log Weight</button>
+            </div>
+          </form>
+        </div>
         <div class="card chart-card">
           <div class="card-header">
             <h2>Progress</h2>
@@ -528,53 +542,9 @@
     </div>
   </div>
 
-  <!-- Log Weight Modal -->
-  <div id="modal-log-weight" class="modal-overlay hidden">
-    <div class="modal modal-small">
-      <div class="modal-header">
-        <h2>Log Weight</h2>
-        <button class="modal-close" data-close="modal-log-weight">✕</button>
-      </div>
-      <form id="log-weight-form" onsubmit="return false;">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="weight-date-input" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label>Weight (<span id="weight-unit-label">lbs</span>)</label>
-          <input type="number" id="weight-value-input" class="form-input" step="0.1" placeholder="e.g. 175.5" required />
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" data-close="modal-log-weight">Cancel</button>
-          <button type="submit" class="btn-primary" id="confirm-weight-btn">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
-  <!-- Edit Weight Modal -->
-  <div id="modal-edit-weight" class="modal-overlay hidden">
-    <div class="modal modal-small">
-      <div class="modal-header">
-        <h2>Edit Weight Entry</h2>
-        <button class="modal-close" data-close="modal-edit-weight">✕</button>
-      </div>
-      <form id="edit-weight-form" onsubmit="return false;">
-        <div class="form-group">
-          <label>Date</label>
-          <input type="date" id="edit-weight-date" class="form-input" />
-        </div>
-        <div class="form-group">
-          <label>Weight (<span id="edit-weight-unit-label">lbs</span>)</label>
-          <input type="number" id="edit-weight-value" class="form-input" step="0.1" required />
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn-danger" id="delete-weight-btn">Delete</button>
-          <button type="submit" class="btn-primary" id="save-weight-edit-btn">Save</button>
-        </div>
-      </form>
-    </div>
-  </div>
+
+
 
   <!-- Manual Food Library Modal -->
   <div id="modal-manual-library" class="modal-overlay hidden">
