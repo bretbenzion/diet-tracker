@@ -1,14 +1,14 @@
-const CACHE_NAME = 'nutritrack-v4';
+const CACHE_NAME = 'nutritrack-v5';
 const STATIC = [
-  '/diet-tracker/main.css',
-  '/diet-tracker/store.js',
-  '/diet-tracker/ui.js',
-  '/diet-tracker/charts.js',
-  '/diet-tracker/ai.js',
-  '/diet-tracker/app.js',
-  '/diet-tracker/manifest.json',
-  '/diet-tracker/icons/icon-192.png',
-  '/diet-tracker/icons/icon-512.png',
+  'main.css',
+  'store.js',
+  'ui.js',
+  'charts.js',
+  'ai.js',
+  'app.js',
+  'manifest.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
 ];
 
@@ -18,7 +18,8 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -27,7 +28,6 @@ self.addEventListener('fetch', e => {
   if (e.request.url.includes('anthropic.com')) return;
   const isHTML = e.request.headers.get('accept')?.includes('text/html');
   if (isHTML) {
-    // Network-first for HTML so new deployments always load
     e.respondWith(
       fetch(e.request).then(r => {
         caches.open(CACHE_NAME).then(c => c.put(e.request, r.clone()));
@@ -35,7 +35,6 @@ self.addEventListener('fetch', e => {
       }).catch(() => caches.match(e.request))
     );
   } else {
-    // Cache-first for static assets
     e.respondWith(
       caches.match(e.request).then(cached => cached || fetch(e.request).then(r => {
         if (r.status === 200) caches.open(CACHE_NAME).then(c => c.put(e.request, r.clone()));

@@ -851,7 +851,7 @@ document.getElementById('clear-data-btn').addEventListener('click', () => {
 // SERVICE WORKER
 // ─────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/diet-tracker/sw.js', { scope: '/diet-tracker/' })
+  navigator.serviceWorker.register('sw.js')
     .catch(err => console.warn('SW registration failed:', err));
 }
 
