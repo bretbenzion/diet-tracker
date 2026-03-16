@@ -567,13 +567,14 @@ function renderWeightStats(entries, unit) {
     ids.forEach(id => { document.getElementById(id).textContent = '—'; });
     return;
   }
-  const current = entries[entries.length - 1].value;
-  const start   = entries[0].value;
-  const avg     = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-  const change  = current - start;
+  const targets     = Store.getTargets();
+  const current     = entries[entries.length - 1].value;
+  const startWeight = targets.startWeight || entries[0].value;
+  const avg         = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+  const change      = current - startWeight;
 
   document.getElementById('stat-current').textContent = `${current} ${unit}`;
-  document.getElementById('stat-start').textContent   = `${start} ${unit}`;
+  document.getElementById('stat-start').textContent   = `${startWeight} ${unit}`;
   document.getElementById('stat-change').textContent  = `${change > 0 ? '+' : ''}${round1(change)} ${unit}`;
   document.getElementById('stat-avg').textContent     = `${round1(avg)} ${unit}`;
   document.getElementById('stat-change').style.color  =
@@ -752,29 +753,33 @@ document.getElementById('manual-library-form').addEventListener('submit', e => {
 // ─────────────────────────────────────────────────────
 function refreshTargets() {
   const t = Store.getTargets();
-  document.getElementById('target-cal-input').value  = t.cal || '';
-  document.getElementById('target-prot-input').value = t.protein || '';
-  document.getElementById('target-prot-dir').value   = t.proteinDir || 'min';
-  document.getElementById('target-carb-input').value = t.carbs || '';
-  document.getElementById('target-carb-dir').value   = t.carbsDir || 'max';
-  document.getElementById('target-fat-input').value  = t.fat || '';
-  document.getElementById('target-fat-dir').value    = t.fatDir || 'max';
+  document.getElementById('target-cal-input').value    = t.cal || '';
+  document.getElementById('target-prot-input').value   = t.protein || '';
+  document.getElementById('target-prot-dir').value     = t.proteinDir || 'min';
+  document.getElementById('target-carb-input').value   = t.carbs || '';
+  document.getElementById('target-carb-dir').value     = t.carbsDir || 'max';
+  document.getElementById('target-fat-input').value    = t.fat || '';
+  document.getElementById('target-fat-dir').value      = t.fatDir || 'max';
   document.getElementById('target-weight-input').value = t.weight || '';
-  document.getElementById('weight-unit-select').value = t.weightUnit || 'lbs';
-  document.getElementById('api-key-input').value = Store.getApiKey() ? '••••••••••••' : '';
+  document.getElementById('weight-unit-select').value  = t.weightUnit || 'lbs';
+  document.getElementById('target-start-weight').value = t.startWeight || '';
+  document.getElementById('target-start-date').value   = t.startDate || '';
+  document.getElementById('api-key-input').value       = Store.getApiKey() ? '••••••••••••' : '';
 }
 
 document.getElementById('save-targets-btn').addEventListener('click', () => {
   Store.setTargets({
-    cal:        parseFloat(document.getElementById('target-cal-input').value) || 0,
-    protein:    parseFloat(document.getElementById('target-prot-input').value) || 0,
-    proteinDir: document.getElementById('target-prot-dir').value,
-    carbs:      parseFloat(document.getElementById('target-carb-input').value) || 0,
-    carbsDir:   document.getElementById('target-carb-dir').value,
-    fat:        parseFloat(document.getElementById('target-fat-input').value) || 0,
-    fatDir:     document.getElementById('target-fat-dir').value,
-    weight:     parseFloat(document.getElementById('target-weight-input').value) || null,
-    weightUnit: document.getElementById('weight-unit-select').value,
+    cal:         parseFloat(document.getElementById('target-cal-input').value) || 0,
+    protein:     parseFloat(document.getElementById('target-prot-input').value) || 0,
+    proteinDir:  document.getElementById('target-prot-dir').value,
+    carbs:       parseFloat(document.getElementById('target-carb-input').value) || 0,
+    carbsDir:    document.getElementById('target-carb-dir').value,
+    fat:         parseFloat(document.getElementById('target-fat-input').value) || 0,
+    fatDir:      document.getElementById('target-fat-dir').value,
+    weight:      parseFloat(document.getElementById('target-weight-input').value) || null,
+    weightUnit:  document.getElementById('weight-unit-select').value,
+    startWeight: parseFloat(document.getElementById('target-start-weight').value) || null,
+    startDate:   document.getElementById('target-start-date').value || null,
   });
   showToast('Targets saved!', 'success');
   refreshDashboard();

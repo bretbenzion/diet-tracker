@@ -184,7 +184,7 @@
               <button class="range-btn" data-range="0">All</button>
             </div>
           </div>
-          <canvas id="weight-chart" height="260"></canvas>
+          <canvas id="weight-chart"></canvas>
         </div>
         <div class="card weight-stats" id="weight-stats">
           <div class="stat-item">
@@ -274,6 +274,16 @@
               <option value="lbs">lbs</option>
               <option value="kg">kg</option>
             </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Starting Weight</label>
+              <input type="number" id="target-start-weight" placeholder="e.g. 195" class="form-input" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Starting Date</label>
+              <input type="date" id="target-start-date" class="form-input" />
+            </div>
           </div>
           <button class="btn-primary full-width" id="save-targets-btn">Save Targets</button>
         </div>

@@ -125,6 +125,7 @@ const Store = {
       carbs: 200, carbsDir: 'max',
       fat: 65, fatDir: 'max',
       weight: null, weightUnit: 'lbs',
+      startWeight: null, startDate: null,
     });
   },
   setTargets(targets) {
