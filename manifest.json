@@ -2,37 +2,37 @@
   "name": "NutriTrack",
   "short_name": "NutriTrack",
   "description": "Personal nutrition and weight tracker",
-  "start_url": ".",
-  "scope": ".",
+  "start_url": "/diet-tracker/index.html",
+  "scope": "/diet-tracker/",
   "display": "standalone",
   "background_color": "#1a1a18",
   "theme_color": "#1a1a18",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/diet-tracker/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-192.png",
+      "src": "/diet-tracker/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/diet-tracker/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/diet-tracker/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "categories": ["health", "fitness"]
+  ]
 }
