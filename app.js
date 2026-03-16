@@ -363,19 +363,35 @@ document.getElementById('confirm-serving-btn').addEventListener('click', e => {
 // ─────────────────────────────────────────────────────
 // MANUAL ENTRY FORM
 // ─────────────────────────────────────────────────────
+
+// Auto-calculate calories as user types macros
+function updateManualCalField() {
+  const protein = parseFloat(document.getElementById('manual-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('manual-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('manual-fat').value) || 0;
+  document.getElementById('manual-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
+}
+['manual-prot', 'manual-carb', 'manual-fat'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateManualCalField);
+});
+
 document.getElementById('manual-food-form').addEventListener('submit', e => {
   e.preventDefault();
   const name = document.getElementById('manual-name').value.trim();
   if (!name) return;
 
+  const protein = parseFloat(document.getElementById('manual-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('manual-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('manual-fat').value) || 0;
+
   const foodData = {
     name,
     servingSize: parseFloat(document.getElementById('manual-serving-size').value) || 1,
     servingUnit: document.getElementById('manual-serving-unit').value.trim(),
-    cal:     parseFloat(document.getElementById('manual-cal').value) || 0,
-    protein: parseFloat(document.getElementById('manual-prot').value) || 0,
-    carbs:   parseFloat(document.getElementById('manual-carb').value) || 0,
-    fat:     parseFloat(document.getElementById('manual-fat').value) || 0,
+    protein,
+    carbs,
+    fat,
+    cal: Math.round(protein * 4 + carbs * 4 + fat * 9),
   };
 
   // Save to library (update if exists, add if new)

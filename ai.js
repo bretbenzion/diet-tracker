@@ -1,7 +1,14 @@
 /**
  * NutriTrack – AI Integration (Anthropic API)
- * Handles food search queries and nutrition label image scanning.
+ * Calories are never requested from the AI — they are calculated from
+ * macros using the Atwater system: protein 4 kcal/g, carbs 4 kcal/g, fat 9 kcal/g.
  */
+
+function calcCalories(protein, carbs, fat) {
+  return Math.round((parseFloat(protein) || 0) * 4 +
+                    (parseFloat(carbs)   || 0) * 4 +
+                    (parseFloat(fat)     || 0) * 9);
+}
 
 const AI = {
   // ── Food Search ───────────────────────────────────
@@ -15,9 +22,8 @@ Return a JSON array of 1-3 food options. For each option provide:
 - name: descriptive food name
 - servingSize: numeric serving size (e.g., 100)
 - servingUnit: unit string (e.g., "g", "oz", "cup", "piece")
-- cal: calories (number)
 - protein: grams of protein (number)
-- carbs: grams of carbohydrates (number)
+- carbs: grams of total carbohydrates (number)
 - fat: grams of fat (number)
 
 Use standard nutritional databases. Be precise. Return ONLY valid JSON array, no markdown, no explanation.`;
@@ -54,7 +60,12 @@ Use standard nutritional databases. Be precise. Return ONLY valid JSON array, no
     }
 
     if (!Array.isArray(parsed)) throw new Error('Unexpected AI response format.');
-    return parsed;
+
+    // Calculate calories from macros — never trust AI-provided calorie numbers
+    return parsed.map(item => ({
+      ...item,
+      cal: calcCalories(item.protein, item.carbs, item.fat),
+    }));
   },
 
   // ── Nutrition Label Scan ──────────────────────────
@@ -66,12 +77,11 @@ Use standard nutritional databases. Be precise. Return ONLY valid JSON array, no
 - name: product name (infer from context or use "Scanned Food" if unclear)
 - servingSize: numeric serving size (e.g., 30)
 - servingUnit: unit string (e.g., "g", "oz", "cup", "piece")
-- cal: calories per serving (number)
 - protein: grams of protein per serving (number)
-- carbs: total carbohydrates per serving (number)
-- fat: total fat per serving (number)
+- carbs: total carbohydrates per serving in grams (number)
+- fat: total fat per serving in grams (number)
 
-Return ONLY valid JSON, no markdown backticks, no explanation. Be accurate to the label.`;
+Do not include calories. Return ONLY valid JSON, no markdown backticks, no explanation. Be accurate to the label.`;
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -117,6 +127,8 @@ Return ONLY valid JSON, no markdown backticks, no explanation. Be accurate to th
       throw new Error('Could not parse label data. Try a clearer image.');
     }
 
+    // Calculate calories from macros
+    parsed.cal = calcCalories(parsed.protein, parsed.carbs, parsed.fat);
     return parsed;
   },
 };
@@ -126,9 +138,7 @@ function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result;
-      // Strip data:image/...;base64, prefix
-      const base64 = result.split(',')[1];
+      const base64 = reader.result.split(',')[1];
       resolve({ base64, mimeType: file.type || 'image/jpeg' });
     };
     reader.onerror = reject;
