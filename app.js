@@ -691,11 +691,15 @@ function renderWeightStats(entries, unit) {
     ids.forEach(id => { document.getElementById(id).textContent = '—'; });
     return;
   }
-  const targets     = Store.getTargets();
-  const current     = entries[entries.length - 1].value;
-  const startWeight = targets.startWeight || entries[0].value;
-  const avg         = entries.reduce((a, e) => a + e.value, 0) / entries.length;
-  const change      = current - startWeight;
+  const targets = Store.getTargets();
+  const current = entries[entries.length - 1].value;
+  // Use targets.startWeight only when viewing All time (weightChartRange === 0)
+  // otherwise use the first entry in the currently displayed range
+  const startWeight = (weightChartRange === 0 && targets.startWeight) 
+    ? targets.startWeight 
+    : entries[0].value;
+  const avg    = entries.reduce((a, e) => a + e.value, 0) / entries.length;
+  const change = current - startWeight;
 
   document.getElementById('stat-current').textContent = `${current} ${unit}`;
   document.getElementById('stat-start').textContent   = `${startWeight} ${unit}`;

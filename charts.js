@@ -31,12 +31,19 @@ function renderWeightChart(entries, rangeDays = 30) {
     return;
   }
 
+  // Set explicit pixel height so Chart.js fills it correctly
+  canvas.style.height = '320px';
+  canvas.height = 320;
+
   const labels = filtered.map(e => {
     const d = new Date(e.date + 'T00:00:00');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   });
 
   const values = filtered.map(e => e.value);
+
+  // Scale point size — fewer entries = slightly larger dots, many entries = no dots
+  const pointRadius = filtered.length > 30 ? 0 : filtered.length > 14 ? 1.5 : 3;
 
   _weightChart = new Chart(canvas, {
     type: 'line',
@@ -48,9 +55,9 @@ function renderWeightChart(entries, rangeDays = 30) {
         borderColor: '#1a1a18',
         backgroundColor: 'rgba(26,26,24,0.07)',
         borderWidth: 2,
-        pointRadius: 4,
+        pointRadius,
+        pointHoverRadius: pointRadius > 0 ? pointRadius + 2 : 3,
         pointBackgroundColor: '#1a1a18',
-        pointHoverRadius: 6,
         fill: true,
         tension: 0.3,
       }],
@@ -78,7 +85,7 @@ function renderWeightChart(entries, rangeDays = 30) {
       scales: {
         x: {
           grid: { color: '#e8e6e0' },
-          ticks: { maxRotation: 0, font: { size: 11 } },
+          ticks: { maxRotation: 0, font: { size: 11 }, maxTicksLimit: 8 },
         },
         y: {
           grid: { color: '#e8e6e0' },
