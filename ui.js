@@ -25,9 +25,14 @@ function closeModal(id) {
 
 // Close modal on overlay click or close button
 document.addEventListener('click', e => {
-  // Overlay click
-  if (e.target.classList.contains('modal-overlay')) {
-    e.target.classList.add('hidden');
+  // Overlay click — only fire if the click landed directly on the overlay,
+  // not on a child element that bubbled up
+  if (e.target.classList.contains('modal-overlay') && e.target === e.currentTarget || 
+      e.target.classList.contains('modal-overlay')) {
+    // Extra guard: don't close if another modal is already visible (just opened)
+    const otherOpen = [...document.querySelectorAll('.modal-overlay:not(.hidden)')]
+      .filter(m => m !== e.target).length > 0;
+    if (!otherOpen) e.target.classList.add('hidden');
   }
   // Close button
   if (e.target.dataset.close) {

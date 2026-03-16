@@ -237,7 +237,10 @@ function renderSelectableList(containerId, items, onSelect) {
     </div>
   `).join('');
   container.querySelectorAll('.selectable-item').forEach((el, i) => {
-    el.addEventListener('click', () => onSelect(items[i]));
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      onSelect(items[i]);
+    });
   });
 }
 
@@ -302,7 +305,8 @@ function updateServingPreview() {
   renderMacrosPreview('serving-macros-preview', scaled.cal, scaled.protein, scaled.carbs, scaled.fat);
 }
 
-document.getElementById('mode-unit-btn').addEventListener('click', () => {
+document.getElementById('mode-unit-btn').addEventListener('click', e => {
+  e.stopPropagation();
   if (!pendingFoodForServing) return;
   const food = pendingFoodForServing;
   const currentVal = parseFloat(document.getElementById('serving-amount').value) || 1;
@@ -314,7 +318,8 @@ document.getElementById('mode-unit-btn').addEventListener('click', () => {
   updateServingPreview();
 });
 
-document.getElementById('mode-servings-btn').addEventListener('click', () => {
+document.getElementById('mode-servings-btn').addEventListener('click', e => {
+  e.stopPropagation();
   if (!pendingFoodForServing) return;
   const food = pendingFoodForServing;
   const currentVal = parseFloat(document.getElementById('serving-amount').value) || 1;
@@ -331,7 +336,8 @@ document.getElementById('serving-amount').addEventListener('input', () => {
   updateServingPreview();
 });
 
-document.getElementById('confirm-serving-btn').addEventListener('click', () => {
+document.getElementById('confirm-serving-btn').addEventListener('click', e => {
+  e.stopPropagation();
   if (!pendingFoodForServing) return;
   const food = pendingFoodForServing;
   const raw = parseFloat(document.getElementById('serving-amount').value) || 1;
