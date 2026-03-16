@@ -1,12 +1,11 @@
 /**
  * NutriTrack – Service Worker
- * Provides offline capability and asset caching.
+ * Network-first for HTML (so new deployments are picked up on normal refresh).
+ * Cache-first for static assets (JS, CSS, fonts).
  */
 
-const CACHE_NAME = 'nutritrack-v2';
-const ASSETS = [
-  '/diet-tracker/',
-  '/diet-tracker/index.html',
+const CACHE_NAME = 'nutritrack-v3';
+const STATIC_ASSETS = [
   '/diet-tracker/main.css',
   '/diet-tracker/store.js',
   '/diet-tracker/ui.js',
@@ -19,33 +18,51 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', e => {
-  // Don't intercept API calls
+  // Never intercept Anthropic API calls
   if (e.request.url.includes('anthropic.com')) return;
 
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(response => {
-        // Cache successful GET responses
-        if (e.request.method === 'GET' && response.status === 200) {
+  const isHTML = e.request.headers.get('accept')?.includes('text/html');
+
+  if (isHTML) {
+    // Network-first for HTML: always try to get the latest page,
+    // fall back to cache only when truly offline
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
-        }
-        return response;
-      }).catch(() => caches.match('/diet-tracker/index.html'));
-    })
-  );
+          return response;
+        })
+        .catch(() => caches.match(e.request).then(r => r || caches.match('/diet-tracker/index.html')))
+    );
+  } else {
+    // Cache-first for static assets
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        return fetch(e.request).then(response => {
+          if (e.request.method === 'GET' && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+  }
 });

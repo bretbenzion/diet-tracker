@@ -636,11 +636,9 @@ function openLogWeightModal(dateStr) {
   if (btn) btn.addEventListener('click', () => openLogWeightModal(currentDate));
 });
 
-document.getElementById('confirm-weight-btn').addEventListener('click', () => {
-  const dateEl = document.getElementById('weight-date-input');
-  const valEl  = document.getElementById('weight-value-input');
-  const date   = dateEl.value || toDateString(new Date());
-  const val    = parseFloat(valEl.value);
+document.getElementById('log-weight-form').addEventListener('submit', () => {
+  const date = document.getElementById('weight-date-input').value || toDateString(new Date());
+  const val  = parseFloat(document.getElementById('weight-value-input').value);
   if (isNaN(val) || val <= 0) { showToast('Please enter a valid weight', 'error'); return; }
   const targets = Store.getTargets();
   Store.addWeightEntry(date, val, targets.weightUnit || 'lbs');
@@ -655,13 +653,13 @@ function openEditWeight(id) {
   if (!entry) return;
   editingWeightId = id;
   const targets = Store.getTargets();
+  openModal('modal-edit-weight');
   document.getElementById('edit-weight-unit-label').textContent = targets.weightUnit || 'lbs';
   document.getElementById('edit-weight-date').value = entry.date;
   document.getElementById('edit-weight-value').value = entry.value;
-  openModal('modal-edit-weight');
 }
 
-document.getElementById('save-weight-edit-btn').addEventListener('click', () => {
+document.getElementById('edit-weight-form').addEventListener('submit', () => {
   const date = document.getElementById('edit-weight-date').value;
   const val = parseFloat(document.getElementById('edit-weight-value').value);
   if (!date || isNaN(val)) { showToast('Invalid input', 'error'); return; }
