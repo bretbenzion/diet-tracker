@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f9f7f4" />
+  <meta name="description" content="NutriTrack – personal nutrition and weight tracker" />
+  <title>NutriTrack</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar Nav -->
+    <nav id="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-mark">N</span>
+        <span class="logo-text">NutriTrack</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#" data-page="dashboard" class="active"><span class="nav-icon">◈</span>Dashboard</a></li>
+        <li><a href="#" data-page="log"><span class="nav-icon">⊕</span>Food Log</a></li>
+        <li><a href="#" data-page="weight"><span class="nav-icon">◎</span>Weight</a></li>
+        <li><a href="#" data-page="foods"><span class="nav-icon">▦</span>Food Library</a></li>
+        <li><a href="#" data-page="targets"><span class="nav-icon">◉</span>Targets</a></li>
+        <li><a href="#" data-page="data"><span class="nav-icon">⇄</span>Data</a></li>
+      </ul>
+      <div class="sidebar-date-nav">
+        <button id="prev-day" class="day-btn">‹</button>
+        <span id="current-date-label">Today</span>
+        <button id="next-day" class="day-btn">›</button>
+      </div>
+    </nav>
+
+    <!-- Mobile Nav Bar -->
+    <nav id="mobile-nav">
+      <a href="#" data-page="dashboard" class="active"><span>◈</span><small>Home</small></a>
+      <a href="#" data-page="log"><span>⊕</span><small>Log</small></a>
+      <a href="#" data-page="weight"><span>◎</span><small>Weight</small></a>
+      <a href="#" data-page="foods"><span>▦</span><small>Foods</small></a>
+      <a href="#" data-page="targets"><span>◉</span><small>Goals</small></a>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content">
+      <!-- DASHBOARD PAGE -->
+      <section id="page-dashboard" class="page active">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle" id="dash-date-display">Loading...</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-icon" id="dash-prev-day" title="Previous day">‹</button>
+            <button class="btn-icon" id="dash-next-day" title="Next day">›</button>
+          </div>
+        </header>
+
+        <!-- Calorie Ring + Summary -->
+        <div class="dash-top">
+          <div class="calorie-ring-card card">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 160 160">
+                <circle class="ring-bg" cx="80" cy="80" r="68" />
+                <circle class="ring-fill" id="calorie-ring" cx="80" cy="80" r="68" />
+              </svg>
+              <div class="ring-center">
+                <span class="ring-consumed" id="ring-consumed">0</span>
+                <span class="ring-label">consumed</span>
+                <span class="ring-remaining" id="ring-remaining">— remaining</span>
+              </div>
+            </div>
+            <div class="ring-legend">
+              <div class="legend-item">
+                <span class="dot dot-consumed"></span>
+                <span id="legend-consumed">0 consumed</span>
+              </div>
+              <div class="legend-item">
+                <span class="dot dot-goal"></span>
+                <span id="legend-goal">0 goal</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="macro-cards">
+            <div class="macro-card card" data-macro="protein">
+              <div class="macro-header">
+                <span class="macro-name">Protein</span>
+                <span class="macro-unit">g</span>
+              </div>
+              <div class="macro-bar-wrap"><div class="macro-bar" id="bar-protein"></div></div>
+              <div class="macro-values">
+                <span id="val-protein">0g</span>
+                <span class="macro-target" id="target-protein">/ 0g</span>
+              </div>
+            </div>
+            <div class="macro-card card" data-macro="carbs">
+              <div class="macro-header">
+                <span class="macro-name">Carbs</span>
+                <span class="macro-unit">g</span>
+              </div>
+              <div class="macro-bar-wrap"><div class="macro-bar" id="bar-carbs"></div></div>
+              <div class="macro-values">
+                <span id="val-carbs">0g</span>
+                <span class="macro-target" id="target-carbs">/ 0g</span>
+              </div>
+            </div>
+            <div class="macro-card card" data-macro="fat">
+              <div class="macro-header">
+                <span class="macro-name">Fat</span>
+                <span class="macro-unit">g</span>
+              </div>
+              <div class="macro-bar-wrap"><div class="macro-bar" id="bar-fat"></div></div>
+              <div class="macro-values">
+                <span id="val-fat">0g</span>
+                <span class="macro-target" id="target-fat">/ 0g</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Log Preview -->
+        <div class="card log-preview">
+          <div class="card-header">
+            <h2>Today's Food</h2>
+            <button class="btn-small" id="quick-add-btn">+ Add Food</button>
+          </div>
+          <div id="dash-food-list" class="food-list-preview">
+            <p class="empty-state">No food logged yet. Start tracking!</p>
+          </div>
+        </div>
+
+        <!-- Weight mini-card -->
+        <div class="card weight-mini">
+          <div class="card-header">
+            <h2>Weight Trend</h2>
+            <button class="btn-small" id="log-weight-btn">+ Log Weight</button>
+          </div>
+          <canvas id="mini-weight-chart" height="100"></canvas>
+        </div>
+      </section>
+
+      <!-- FOOD LOG PAGE -->
+      <section id="page-log" class="page">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Food Log</h1>
+            <p class="page-subtitle" id="log-date-display">Loading...</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-icon" id="log-prev-day">‹</button>
+            <button class="btn-icon" id="log-next-day">›</button>
+            <button class="btn-primary" id="log-add-food-btn">+ Add Food</button>
+          </div>
+        </header>
+        <div id="log-food-list" class="full-food-list">
+          <p class="empty-state">No food logged for this day.</p>
+        </div>
+        <div class="log-totals card" id="log-totals">
+          <span>Totals:</span>
+          <span id="total-cal">0 kcal</span>
+          <span id="total-prot">P: 0g</span>
+          <span id="total-carb">C: 0g</span>
+          <span id="total-fat">F: 0g</span>
+        </div>
+      </section>
+
+      <!-- WEIGHT PAGE -->
+      <section id="page-weight" class="page">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Weight Tracker</h1>
+          </div>
+          <div class="header-actions">
+            <button class="btn-primary" id="add-weight-entry-btn">+ Log Weight</button>
+          </div>
+        </header>
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2>Progress</h2>
+            <div class="chart-range-btns">
+              <button class="range-btn active" data-range="30">30d</button>
+              <button class="range-btn" data-range="90">90d</button>
+              <button class="range-btn" data-range="365">1y</button>
+              <button class="range-btn" data-range="0">All</button>
+            </div>
+          </div>
+          <canvas id="weight-chart" height="260"></canvas>
+        </div>
+        <div class="card weight-stats" id="weight-stats">
+          <div class="stat-item">
+            <span class="stat-label">Current</span>
+            <span class="stat-value" id="stat-current">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Starting</span>
+            <span class="stat-value" id="stat-start">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Change</span>
+            <span class="stat-value" id="stat-change">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Average</span>
+            <span class="stat-value" id="stat-avg">—</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>Log</h2></div>
+          <div id="weight-log-list"></div>
+        </div>
+      </section>
+
+      <!-- FOOD LIBRARY PAGE -->
+      <section id="page-foods" class="page">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Food Library</h1>
+          </div>
+          <div class="header-actions">
+            <button class="btn-secondary" id="manual-add-food-btn">+ Manual</button>
+            <button class="btn-primary" id="ai-search-food-btn">✦ AI Search</button>
+          </div>
+        </header>
+        <div class="search-bar-wrap">
+          <input type="text" id="food-library-search" placeholder="Search your foods…" class="search-input" />
+        </div>
+        <div id="food-library-list" class="food-library-grid"></div>
+      </section>
+
+      <!-- TARGETS PAGE -->
+      <section id="page-targets" class="page">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Targets</h1>
+            <p class="page-subtitle">Set your daily nutrition goals</p>
+          </div>
+        </header>
+        <div class="card targets-form">
+          <div class="form-group">
+            <label>Daily Calories (kcal)</label>
+            <input type="number" id="target-cal-input" placeholder="e.g. 2000" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="target-prot-input" placeholder="e.g. 150" class="form-input" />
+            <select id="target-prot-dir" class="form-select">
+              <option value="max">Maximum</option>
+              <option value="min" selected>Minimum</option>
+              <option value="exact">Exact</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Carbohydrates (g)</label>
+            <input type="number" id="target-carb-input" placeholder="e.g. 200" class="form-input" />
+            <select id="target-carb-dir" class="form-select">
+              <option value="max" selected>Maximum</option>
+              <option value="min">Minimum</option>
+              <option value="exact">Exact</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fat (g)</label>
+            <input type="number" id="target-fat-input" placeholder="e.g. 65" class="form-input" />
+            <select id="target-fat-dir" class="form-select">
+              <option value="max" selected>Maximum</option>
+              <option value="min">Minimum</option>
+              <option value="exact">Exact</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Weight Goal</label>
+            <input type="number" id="target-weight-input" placeholder="e.g. 160" class="form-input" />
+            <select id="weight-unit-select" class="form-select">
+              <option value="lbs">lbs</option>
+              <option value="kg">kg</option>
+            </select>
+          </div>
+          <button class="btn-primary full-width" id="save-targets-btn">Save Targets</button>
+        </div>
+        <div class="card api-key-card">
+          <div class="card-header"><h2>AI Settings</h2></div>
+          <p class="helper-text">Enter your Anthropic API key to enable AI food search and label scanning.</p>
+          <div class="form-group">
+            <label>Anthropic API Key</label>
+            <input type="password" id="api-key-input" placeholder="sk-ant-…" class="form-input" />
+          </div>
+          <button class="btn-secondary full-width" id="save-api-key-btn">Save Key</button>
+          <p class="helper-text small">Your key is stored locally only and never sent anywhere except Anthropic's API.</p>
+        </div>
+      </section>
+
+      <!-- DATA PAGE -->
+      <section id="page-data" class="page">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Data</h1>
+            <p class="page-subtitle">Import & export your data</p>
+          </div>
+        </header>
+        <div class="data-grid">
+          <div class="card">
+            <div class="card-header"><h2>Export</h2></div>
+            <p class="helper-text">Download all your data as JSON.</p>
+            <button class="btn-primary full-width" id="export-btn">Export JSON</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>Import</h2></div>
+            <p class="helper-text">Restore data from a previous export.</p>
+            <input type="file" id="import-file-input" accept=".json" style="display:none" />
+            <button class="btn-secondary full-width" id="import-btn">Import JSON</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><h2>Danger Zone</h2></div>
+            <p class="helper-text">Permanently delete all stored data.</p>
+            <button class="btn-danger full-width" id="clear-data-btn">Clear All Data</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========== MODALS ========== -->
+
+  <!-- Add Food Modal -->
+  <div id="modal-add-food" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-add-food-title">Add Food</h2>
+        <button class="modal-close" data-close="modal-add-food">✕</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="recent">Recent</button>
+        <button class="tab-btn" data-tab="library">Library</button>
+        <button class="tab-btn" data-tab="manual">Manual</button>
+        <button class="tab-btn" data-tab="ai">✦ AI Search</button>
+        <button class="tab-btn" data-tab="scan">📷 Scan</button>
+      </div>
+      <!-- Recent Tab -->
+      <div id="tab-recent" class="tab-content active">
+        <div class="search-bar-wrap">
+          <input type="text" id="recent-search" placeholder="Search recent foods…" class="search-input" />
+        </div>
+        <div id="recent-food-list" class="selectable-list"></div>
+      </div>
+      <!-- Library Tab -->
+      <div id="tab-library" class="tab-content hidden">
+        <div class="search-bar-wrap">
+          <input type="text" id="library-search-modal" placeholder="Search library…" class="search-input" />
+        </div>
+        <div id="library-food-list-modal" class="selectable-list"></div>
+      </div>
+      <!-- Manual Tab -->
+      <div id="tab-manual" class="tab-content hidden">
+        <form id="manual-food-form" class="food-form" autocomplete="off">
+          <div class="form-group">
+            <label>Food Name *</label>
+            <input type="text" id="manual-name" placeholder="e.g. Chicken Breast" class="form-input" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Serving Size</label>
+              <input type="number" id="manual-serving-size" placeholder="100" class="form-input" min="0.1" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Unit</label>
+              <input type="text" id="manual-serving-unit" placeholder="g / oz / cup" class="form-input" />
+            </div>
+          </div>
+          <div class="form-row macro-row">
+            <div class="form-group">
+              <label>Calories</label>
+              <input type="number" id="manual-cal" placeholder="0" class="form-input" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Protein (g)</label>
+              <input type="number" id="manual-prot" placeholder="0" class="form-input" min="0" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Carbs (g)</label>
+              <input type="number" id="manual-carb" placeholder="0" class="form-input" min="0" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Fat (g)</label>
+              <input type="number" id="manual-fat" placeholder="0" class="form-input" min="0" step="0.1" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="save-to-library-btn">Save to Library</button>
+            <button type="submit" class="btn-primary">Add to Log</button>
+          </div>
+        </form>
+      </div>
+      <!-- AI Search Tab -->
+      <div id="tab-ai" class="tab-content hidden">
+        <div class="ai-search-area">
+          <input type="text" id="ai-food-query" placeholder="e.g. 6oz grilled salmon…" class="search-input" />
+          <button class="btn-primary" id="ai-search-btn">Search</button>
+        </div>
+        <div id="ai-results" class="ai-results"></div>
+      </div>
+      <!-- Scan Tab -->
+      <div id="tab-scan" class="tab-content hidden">
+        <div class="scan-area">
+          <div class="scan-preview-wrap">
+            <video id="scan-video" autoplay playsinline></video>
+            <canvas id="scan-canvas" style="display:none"></canvas>
+            <img id="scan-preview-img" style="display:none;max-width:100%;border-radius:8px;" />
+          </div>
+          <div class="scan-actions">
+            <button class="btn-secondary" id="scan-camera-btn">📷 Open Camera</button>
+            <label class="btn-secondary" for="scan-file-input">🖼 Upload Image</label>
+            <input type="file" id="scan-file-input" accept="image/*" style="display:none" />
+            <button class="btn-primary hidden" id="scan-capture-btn">Capture</button>
+            <button class="btn-primary hidden" id="scan-analyze-btn">✦ Analyze Label</button>
+          </div>
+          <div id="scan-results" class="ai-results"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Serving Size Confirm Modal -->
+  <div id="modal-serving" class="modal-overlay hidden">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2 id="serving-food-name">Adjust Serving</h2>
+        <button class="modal-close" data-close="modal-serving">✕</button>
+      </div>
+      <p class="helper-text" id="serving-base-info">Base: 100g</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="serving-amount" class="form-input" min="0.1" step="0.1" value="1" />
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <input type="text" id="serving-unit" class="form-input" />
+        </div>
+      </div>
+      <div id="serving-macros-preview" class="macros-preview"></div>
+      <div class="form-actions">
+        <button class="btn-secondary" data-close="modal-serving">Cancel</button>
+        <button class="btn-primary" id="confirm-serving-btn">Add to Log</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Food Approval Modal -->
+  <div id="modal-ai-approve" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Review AI Result</h2>
+        <button class="modal-close" data-close="modal-ai-approve">✕</button>
+      </div>
+      <p class="helper-text">Review and adjust before adding to your log or library.</p>
+      <form id="ai-approve-form" class="food-form">
+        <div class="form-group">
+          <label>Food Name</label>
+          <input type="text" id="ai-approve-name" class="form-input" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Serving Size</label>
+            <input type="number" id="ai-approve-serving-size" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="ai-approve-serving-unit" class="form-input" />
+          </div>
+        </div>
+        <div class="form-row macro-row">
+          <div class="form-group">
+            <label>Calories</label>
+            <input type="number" id="ai-approve-cal" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="ai-approve-prot" class="form-input" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Carbs (g)</label>
+            <input type="number" id="ai-approve-carb" class="form-input" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Fat (g)</label>
+            <input type="number" id="ai-approve-fat" class="form-input" step="0.1" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="ai-approve-library-btn">Save to Library</button>
+          <button type="submit" class="btn-primary">Add to Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Food Log Entry Modal -->
+  <div id="modal-edit-entry" class="modal-overlay hidden">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Edit Entry</h2>
+        <button class="modal-close" data-close="modal-edit-entry">✕</button>
+      </div>
+      <form id="edit-entry-form" class="food-form">
+        <div class="form-group">
+          <label>Food Name</label>
+          <input type="text" id="edit-entry-name" class="form-input" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="edit-entry-amount" class="form-input" min="0.1" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="edit-entry-unit" class="form-input" />
+          </div>
+        </div>
+        <div class="form-row macro-row">
+          <div class="form-group">
+            <label>Calories</label>
+            <input type="number" id="edit-entry-cal" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="edit-entry-prot" class="form-input" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Carbs (g)</label>
+            <input type="number" id="edit-entry-carb" class="form-input" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Fat (g)</label>
+            <input type="number" id="edit-entry-fat" class="form-input" step="0.1" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-danger" id="delete-entry-btn">Delete</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Log Weight Modal -->
+  <div id="modal-log-weight" class="modal-overlay hidden">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Log Weight</h2>
+        <button class="modal-close" data-close="modal-log-weight">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="weight-date-input" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Weight (<span id="weight-unit-label">lbs</span>)</label>
+        <input type="number" id="weight-value-input" class="form-input" step="0.1" placeholder="e.g. 175.5" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" data-close="modal-log-weight">Cancel</button>
+        <button class="btn-primary" id="confirm-weight-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Weight Modal -->
+  <div id="modal-edit-weight" class="modal-overlay hidden">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>Edit Weight Entry</h2>
+        <button class="modal-close" data-close="modal-edit-weight">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="edit-weight-date" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Weight (<span id="edit-weight-unit-label">lbs</span>)</label>
+        <input type="number" id="edit-weight-value" class="form-input" step="0.1" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-danger" id="delete-weight-btn">Delete</button>
+        <button class="btn-primary" id="save-weight-edit-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Food Library Modal -->
+  <div id="modal-manual-library" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="manual-lib-title">Add to Library</h2>
+        <button class="modal-close" data-close="modal-manual-library">✕</button>
+      </div>
+      <form id="manual-library-form" class="food-form">
+        <div class="form-group">
+          <label>Food Name *</label>
+          <input type="text" id="lib-name" class="form-input" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Serving Size</label>
+            <input type="number" id="lib-serving-size" class="form-input" placeholder="100" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="lib-serving-unit" class="form-input" placeholder="g" />
+          </div>
+        </div>
+        <div class="form-row macro-row">
+          <div class="form-group">
+            <label>Calories</label>
+            <input type="number" id="lib-cal" class="form-input" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="lib-prot" class="form-input" placeholder="0" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Carbs (g)</label>
+            <input type="number" id="lib-carb" class="form-input" placeholder="0" step="0.1" />
+          </div>
+          <div class="form-group">
+            <label>Fat (g)</label>
+            <input type="number" id="lib-fat" class="form-input" placeholder="0" step="0.1" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" data-close="modal-manual-library">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
