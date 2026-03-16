@@ -810,8 +810,11 @@ document.getElementById('export-btn').addEventListener('click', () => {
   const a = document.createElement('a');
   a.href = url;
   a.download = `nutritrack-export-${toDateString(new Date())}.json`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  // Defer revoke so the browser has time to start the download
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast('Exported!', 'success');
 });
 
@@ -826,11 +829,20 @@ document.getElementById('import-file-input').addEventListener('change', e => {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
+      if (!data || typeof data !== 'object') throw new Error('Not a valid NutriTrack export');
       Store.importAll(data);
       showToast('Data imported!', 'success');
-      refreshPage(currentPage);
+      // Refresh every page so all views reflect the imported data
+      updateDateLabels();
+      refreshDashboard();
+      refreshLogPage();
+      refreshWeightPage();
+      refreshFoodLibrary();
+      refreshTargets();
+      // Navigate to dashboard so user sees something immediately
+      navigateTo('dashboard');
     } catch (err) {
-      showToast('Import failed: invalid file', 'error');
+      showToast('Import failed: ' + (err.message || 'invalid file'), 'error');
     }
   };
   reader.readAsText(file);

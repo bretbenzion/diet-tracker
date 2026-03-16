@@ -162,11 +162,13 @@ const Store = {
   },
   importAll(data) {
     if (!data || typeof data !== 'object') throw new Error('Invalid data');
-    if (data.log)     this._set(KEYS.LOG,     data.log);
-    if (data.weight)  this._set(KEYS.WEIGHT,  data.weight);
-    if (data.library) this._set(KEYS.LIBRARY, data.library);
-    if (data.targets) this._set(KEYS.TARGETS, data.targets);
-    if (data.prefs)   this._set(KEYS.PREFS,   data.prefs);
+    // Use explicit key checks — never skip a key just because its value is empty
+    // (an empty [] for weight or {} for log is valid and must overwrite old data)
+    if ('log'     in data) this._set(KEYS.LOG,     data.log);
+    if ('weight'  in data) this._set(KEYS.WEIGHT,  data.weight);
+    if ('library' in data) this._set(KEYS.LIBRARY, data.library);
+    if ('targets' in data) this._set(KEYS.TARGETS, data.targets);
+    if ('prefs'   in data) this._set(KEYS.PREFS,   data.prefs);
   },
   clearAll() {
     Object.values(KEYS).forEach(k => {
