@@ -169,7 +169,7 @@
               </div>
               <div class="form-group" style="margin:0;flex:1;min-width:130px;">
                 <label>Weight (<span id="weight-unit-label">lbs</span>)</label>
-                <input type="number" id="weight-value-input" class="form-input" step="0.1" min="1" placeholder="e.g. 175.5" />
+                <input type="number" id="weight-value-input" class="form-input" step="0.1" min="1" placeholder="" />
               </div>
               <button type="submit" class="btn-primary" style="margin-bottom:1px;">Log Weight</button>
             </div>
@@ -179,13 +179,16 @@
           <div class="card-header">
             <h2>Progress</h2>
             <div class="chart-range-btns">
+              <button class="range-btn" data-range="7">7d</button>
               <button class="range-btn active" data-range="30">30d</button>
               <button class="range-btn" data-range="90">90d</button>
               <button class="range-btn" data-range="365">1y</button>
               <button class="range-btn" data-range="0">All</button>
             </div>
           </div>
-          <canvas id="weight-chart"></canvas>
+          <div style="height:320px;position:relative;">
+            <canvas id="weight-chart"></canvas>
+          </div>
         </div>
         <div class="card weight-stats" id="weight-stats">
           <div class="stat-item">
@@ -239,11 +242,11 @@
         <div class="card targets-form">
           <div class="form-group">
             <label>Daily Calories (kcal)</label>
-            <input type="number" id="target-cal-input" placeholder="e.g. 2000" class="form-input" />
+            <input type="number" id="target-cal-input" placeholder="2000" class="form-input" />
           </div>
           <div class="form-group">
             <label>Protein (g)</label>
-            <input type="number" id="target-prot-input" placeholder="e.g. 150" class="form-input" />
+            <input type="number" id="target-prot-input" placeholder="150" class="form-input" />
             <select id="target-prot-dir" class="form-select">
               <option value="max">Maximum</option>
               <option value="min" selected>Minimum</option>
@@ -252,7 +255,7 @@
           </div>
           <div class="form-group">
             <label>Carbohydrates (g)</label>
-            <input type="number" id="target-carb-input" placeholder="e.g. 200" class="form-input" />
+            <input type="number" id="target-carb-input" placeholder="200" class="form-input" />
             <select id="target-carb-dir" class="form-select">
               <option value="max" selected>Maximum</option>
               <option value="min">Minimum</option>
@@ -261,7 +264,7 @@
           </div>
           <div class="form-group">
             <label>Fat (g)</label>
-            <input type="number" id="target-fat-input" placeholder="e.g. 65" class="form-input" />
+            <input type="number" id="target-fat-input" placeholder="65" class="form-input" />
             <select id="target-fat-dir" class="form-select">
               <option value="max" selected>Maximum</option>
               <option value="min">Minimum</option>
@@ -270,7 +273,7 @@
           </div>
           <div class="form-group">
             <label>Weight Goal</label>
-            <input type="number" id="target-weight-input" placeholder="e.g. 160" class="form-input" />
+            <input type="number" id="target-weight-input" placeholder="160" class="form-input" />
             <select id="weight-unit-select" class="form-select">
               <option value="lbs">lbs</option>
               <option value="kg">kg</option>
@@ -279,7 +282,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Starting Weight</label>
-              <input type="number" id="target-start-weight" placeholder="e.g. 195" class="form-input" step="0.1" />
+              <input type="number" id="target-start-weight" placeholder="195" class="form-input" step="0.1" />
             </div>
             <div class="form-group">
               <label>Starting Date</label>
@@ -356,7 +359,7 @@
         <form id="manual-food-form" class="food-form" autocomplete="off">
           <div class="form-group">
             <label>Food Name *</label>
-            <input type="text" id="manual-name" placeholder="e.g. Chicken Breast" class="form-input" required />
+            <input type="text" id="manual-name" placeholder="Food name" class="form-input" required />
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -394,7 +397,7 @@
       <!-- AI Search Tab -->
       <div id="tab-ai" class="tab-content hidden">
         <div class="ai-search-area">
-          <input type="text" id="ai-food-query" placeholder="e.g. 6oz grilled salmon…" class="search-input" />
+          <input type="text" id="ai-food-query" placeholder="Search foods…" class="search-input" />
           <button class="btn-primary" id="ai-search-btn">Search</button>
         </div>
         <div id="ai-results" class="ai-results"></div>

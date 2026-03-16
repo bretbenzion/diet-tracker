@@ -663,21 +663,25 @@ document.getElementById('scan-analyze-btn').addEventListener('click', async () =
 // ─────────────────────────────────────────────────────
 // WEIGHT PAGE
 // ─────────────────────────────────────────────────────
+function filterByRange(entries, rangeDays) {
+  if (!rangeDays) return entries;
+  const cutoff = Date.now() - rangeDays * 86400000;
+  return entries.filter(e => new Date(e.date + 'T00:00:00').getTime() >= cutoff);
+}
+
 function refreshWeightPage() {
   const targets = Store.getTargets();
   const unit    = targets.weightUnit || 'lbs';
   const entries = Store.getWeightEntries();
+  const filtered = filterByRange(entries, weightChartRange);
 
-  // Keep the unit label in sync with targets
   document.getElementById('weight-unit-label').textContent = unit;
-
-  // Default date input to today
   if (!document.getElementById('weight-date-input').value) {
     document.getElementById('weight-date-input').value = toDateString(new Date());
   }
 
   renderWeightChart(entries, weightChartRange);
-  renderWeightStats(entries, unit);
+  renderWeightStats(filtered, unit);
   renderWeightLog(entries, unit);
 }
 
@@ -741,7 +745,11 @@ document.querySelectorAll('.range-btn').forEach(btn => {
     document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     weightChartRange = parseInt(btn.dataset.range);
-    renderWeightChart(Store.getWeightEntries(), weightChartRange);
+    const entries  = Store.getWeightEntries();
+    const filtered = filterByRange(entries, weightChartRange);
+    const unit     = Store.getTargets().weightUnit || 'lbs';
+    renderWeightChart(entries, weightChartRange);
+    renderWeightStats(filtered, unit);
   });
 });
 
