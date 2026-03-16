@@ -124,7 +124,9 @@ function updateEditEntryCalField() {
   document.getElementById('edit-entry-cal').value = round1(protein * 4 + carbs * 4 + fat * 9);
 }
 ['edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateEditEntryCalField);
+  ['input', 'change', 'keyup'].forEach(ev =>
+    document.getElementById(id).addEventListener(ev, updateEditEntryCalField)
+  );
 });
 
 // Base macros per serving for the entry being edited
@@ -386,7 +388,9 @@ function updateManualCalField() {
   document.getElementById('manual-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
 }
 ['manual-prot', 'manual-carb', 'manual-fat'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateManualCalField);
+  ['input', 'change', 'keyup'].forEach(ev =>
+    document.getElementById(id).addEventListener(ev, updateManualCalField)
+  );
 });
 
 document.getElementById('manual-food-form').addEventListener('submit', e => {
@@ -479,7 +483,9 @@ function updateAiApproveCalField() {
   document.getElementById('ai-approve-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
 }
 ['ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateAiApproveCalField);
+  ['input', 'change', 'keyup'].forEach(ev =>
+    document.getElementById(id).addEventListener(ev, updateAiApproveCalField)
+  );
 });
 
 function openAiApprovalModal(food) {
@@ -828,7 +834,9 @@ function updateLibCalField() {
   document.getElementById('lib-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
 }
 ['lib-prot', 'lib-carb', 'lib-fat'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateLibCalField);
+  ['input', 'change', 'keyup'].forEach(ev =>
+    document.getElementById(id).addEventListener(ev, updateLibCalField)
+  );
 });
 
 document.getElementById('manual-library-form').addEventListener('submit', e => {
