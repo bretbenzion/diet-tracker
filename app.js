@@ -942,10 +942,6 @@ document.getElementById('export-btn').addEventListener('click', () => {
   showToast('Exported!', 'success');
 });
 
-document.getElementById('import-btn').addEventListener('click', () => {
-  document.getElementById('import-file-input').click();
-});
-
 document.getElementById('import-file-input').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;

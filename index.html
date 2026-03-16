@@ -317,8 +317,10 @@
           <div class="card">
             <div class="card-header"><h2>Import</h2></div>
             <p class="helper-text">Restore data from a previous export.</p>
-            <input type="file" id="import-file-input" accept=".json" style="display:none" />
-            <button class="btn-secondary full-width" id="import-btn">Import JSON</button>
+            <label class="btn-secondary full-width" style="text-align:center;cursor:pointer;">
+              Import JSON
+              <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" />
+            </label>
           </div>
           <div class="card">
             <div class="card-header"><h2>Danger Zone</h2></div>
@@ -372,7 +374,7 @@
           <div class="form-row macro-row">
             <div class="form-group">
               <label>Calories (auto)</label>
-              <input type="number" id="manual-cal" placeholder="0" class="form-input" min="0" tabindex="-1" style="background:var(--cream);color:var(--ink-muted);pointer-events:none;" />
+              <div id="manual-cal" class="form-input" style="background:var(--cream);color:var(--ink-muted);display:flex;align-items:center;">0</div>
             </div>
             <div class="form-group">
               <label>Protein (g)</label>
@@ -472,7 +474,7 @@
         <div class="form-row macro-row">
           <div class="form-group">
             <label>Calories (auto)</label>
-            <input type="number" id="ai-approve-cal" class="form-input" tabindex="-1" style="background:var(--cream);color:var(--ink-muted);pointer-events:none;" />
+            <div id="ai-approve-cal" class="form-input" style="background:var(--cream);color:var(--ink-muted);display:flex;align-items:center;">0</div>
           </div>
           <div class="form-group">
             <label>Protein (g)</label>
@@ -520,7 +522,7 @@
         <div class="form-row macro-row">
           <div class="form-group">
             <label>Calories (auto)</label>
-            <input type="number" id="edit-entry-cal" class="form-input" tabindex="-1" style="background:var(--cream);color:var(--ink-muted);pointer-events:none;" />
+            <div id="edit-entry-cal" class="form-input" style="background:var(--cream);color:var(--ink-muted);display:flex;align-items:center;">0</div>
           </div>
           <div class="form-group">
             <label>Protein (g)</label>
@@ -572,7 +574,7 @@
         <div class="form-row macro-row">
           <div class="form-group">
             <label>Calories (auto)</label>
-            <input type="number" id="lib-cal" class="form-input" placeholder="0" tabindex="-1" style="background:var(--cream);color:var(--ink-muted);pointer-events:none;" />
+            <div id="lib-cal" class="form-input" style="background:var(--cream);color:var(--ink-muted);display:flex;align-items:center;">0</div>
           </div>
           <div class="form-group">
             <label>Protein (g)</label>
