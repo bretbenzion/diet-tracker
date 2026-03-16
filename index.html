@@ -317,7 +317,7 @@
           <div class="card">
             <div class="card-header"><h2>Import</h2></div>
             <p class="helper-text">Restore data from a previous export.</p>
-            <input type="file" id="import-file-input" accept=".json,application/json" class="btn-secondary full-width" style="cursor:pointer;" />
+            <input type="file" id="import-file-input" accept=".json,application/json,text/plain" onchange="handleImportFile(this)" class="btn-secondary full-width" style="cursor:pointer;" />
           </div>
           <div class="card">
             <div class="card-header"><h2>Danger Zone</h2></div>

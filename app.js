@@ -942,8 +942,8 @@ document.getElementById('export-btn').addEventListener('click', () => {
   showToast('Exported!', 'success');
 });
 
-document.getElementById('import-file-input').addEventListener('change', e => {
-  const file = e.target.files[0];
+function handleImportFile(input) {
+  const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
@@ -962,11 +962,11 @@ document.getElementById('import-file-input').addEventListener('change', e => {
     } catch (err) {
       showToast('Import failed: ' + (err.message || 'invalid file'), 'error');
     }
-    e.target.value = ''; // reset after load completes, not before
+    input.value = '';
   };
   reader.onerror = () => showToast('Could not read file', 'error');
   reader.readAsText(file);
-});
+}
 
 document.getElementById('clear-data-btn').addEventListener('click', () => {
   if (!confirm('Are you sure? This will permanently delete all your data.')) return;
