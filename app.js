@@ -952,21 +952,20 @@ document.getElementById('import-file-input').addEventListener('change', e => {
       if (!data || typeof data !== 'object') throw new Error('Not a valid NutriTrack export');
       Store.importAll(data);
       showToast('Data imported!', 'success');
-      // Refresh every page so all views reflect the imported data
       updateDateLabels();
       refreshDashboard();
       refreshLogPage();
       refreshWeightPage();
       refreshFoodLibrary();
       refreshTargets();
-      // Navigate to dashboard so user sees something immediately
       navigateTo('dashboard');
     } catch (err) {
       showToast('Import failed: ' + (err.message || 'invalid file'), 'error');
     }
+    e.target.value = ''; // reset after load completes, not before
   };
+  reader.onerror = () => showToast('Could not read file', 'error');
   reader.readAsText(file);
-  e.target.value = '';
 });
 
 document.getElementById('clear-data-btn').addEventListener('click', () => {
