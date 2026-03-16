@@ -125,21 +125,48 @@ function refreshLogPage() {
   document.getElementById('total-fat').textContent  = `F: ${round1(totals.fat)}g`;
 }
 
+// Base macros per serving for the entry being edited (used to recalculate on amount change)
+let editingEntryBase = null;
+
 function openEditEntry(id) {
   const entries = Store.getLog(currentDate);
   const entry = entries.find(e => e.id === id);
   if (!entry) return;
 
   editingEntryId = id;
+
+  // Store per-serving base macros so we can scale when amount changes.
+  // The entry stores already-scaled values (amount * per-serving).
+  // Recover the per-serving base by dividing by the stored amount.
+  const storedAmt = entry.amount || 1;
+  editingEntryBase = {
+    cal:     (parseFloat(entry.cal)     || 0) / storedAmt,
+    protein: (parseFloat(entry.protein) || 0) / storedAmt,
+    carbs:   (parseFloat(entry.carbs)   || 0) / storedAmt,
+    fat:     (parseFloat(entry.fat)     || 0) / storedAmt,
+    servingSize: entry.servingSize || 1,
+    servingUnit: entry.servingUnit || '',
+  };
+
   document.getElementById('edit-entry-name').value   = entry.name || '';
-  document.getElementById('edit-entry-amount').value = entry.amount || 1;
+  document.getElementById('edit-entry-amount').value = storedAmt;
   document.getElementById('edit-entry-unit').value   = entry.servingUnit || '';
-  document.getElementById('edit-entry-cal').value    = entry.cal || 0;
-  document.getElementById('edit-entry-prot').value   = entry.protein || 0;
-  document.getElementById('edit-entry-carb').value   = entry.carbs || 0;
-  document.getElementById('edit-entry-fat').value    = entry.fat || 0;
+  document.getElementById('edit-entry-cal').value    = round1(entry.cal || 0);
+  document.getElementById('edit-entry-prot').value   = round1(entry.protein || 0);
+  document.getElementById('edit-entry-carb').value   = round1(entry.carbs || 0);
+  document.getElementById('edit-entry-fat').value    = round1(entry.fat || 0);
   openModal('modal-edit-entry');
 }
+
+// Recalculate macro fields when amount is changed in the edit modal
+document.getElementById('edit-entry-amount').addEventListener('input', e => {
+  if (!editingEntryBase) return;
+  const amt = parseFloat(e.target.value) || 0;
+  document.getElementById('edit-entry-cal').value  = round1(editingEntryBase.cal     * amt);
+  document.getElementById('edit-entry-prot').value = round1(editingEntryBase.protein * amt);
+  document.getElementById('edit-entry-carb').value = round1(editingEntryBase.carbs   * amt);
+  document.getElementById('edit-entry-fat').value  = round1(editingEntryBase.fat     * amt);
+});
 
 document.getElementById('edit-entry-form').addEventListener('submit', e => {
   e.preventDefault();
@@ -309,7 +336,20 @@ document.getElementById('manual-food-form').addEventListener('submit', e => {
   const carbs = parseFloat(document.getElementById('manual-carb').value) || 0;
   const fat = parseFloat(document.getElementById('manual-fat').value) || 0;
 
-  Store.addLogEntry(currentDate, { name, amount: 1, servingSize, servingUnit, cal, protein, carbs, fat });
+  const foodData = { name, servingSize, servingUnit, cal, protein, carbs, fat };
+
+  // Add to today's log
+  Store.addLogEntry(currentDate, { ...foodData, amount: 1 });
+
+  // Auto-sync to library: update if name already exists, otherwise add new
+  const library = Store.getLibrary();
+  const existing = library.find(i => i.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    Store.updateLibraryItem(existing.id, foodData);
+  } else {
+    Store.addToLibrary(foodData);
+  }
+
   closeModal('modal-add-food');
   refreshPage(currentPage);
   showToast(`${name} added!`, 'success');
@@ -590,7 +630,9 @@ function openLogWeightModal(dateStr) {
   const targets = Store.getTargets();
   const unit = targets.weightUnit || 'lbs';
   document.getElementById('weight-unit-label').textContent = unit;
-  document.getElementById('weight-date-input').value = dateStr || toDateString(new Date());
+  // Always fall back to today if no date provided
+  const date = dateStr || toDateString(new Date());
+  document.getElementById('weight-date-input').value = date;
   document.getElementById('weight-value-input').value = '';
   openModal('modal-log-weight');
 }
@@ -603,12 +645,13 @@ function openLogWeightModal(dateStr) {
 document.getElementById('confirm-weight-btn').addEventListener('click', () => {
   const date = document.getElementById('weight-date-input').value;
   const val = parseFloat(document.getElementById('weight-value-input').value);
-  if (!date || isNaN(val)) { showToast('Please enter a valid weight', 'error'); return; }
+  if (!date || isNaN(val) || val <= 0) { showToast('Please enter a valid weight', 'error'); return; }
   const targets = Store.getTargets();
   Store.addWeightEntry(date, val, targets.weightUnit || 'lbs');
   closeModal('modal-log-weight');
   refreshPage(currentPage);
-  if (currentPage === 'dashboard') renderMiniWeightChart(Store.getWeightEntries());
+  // Always sync the mini chart in case user is on dashboard
+  renderMiniWeightChart(Store.getWeightEntries());
   showToast('Weight logged!', 'success');
 });
 

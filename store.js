@@ -78,10 +78,14 @@ const Store = {
     return item;
   },
   updateWeightEntry(id, updates) {
-    const entries = this._get(KEYS.WEIGHT, []);
+    let entries = this._get(KEYS.WEIGHT, []);
     const idx = entries.findIndex(e => e.id === id);
     if (idx !== -1) {
       entries[idx] = { ...entries[idx], ...updates };
+      // If the date changed, another entry for that date may now be a duplicate — remove it
+      if (updates.date) {
+        entries = entries.filter((e, i) => i === idx || e.date !== updates.date);
+      }
       this._set(KEYS.WEIGHT, entries);
     }
   },
