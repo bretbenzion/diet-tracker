@@ -66,17 +66,16 @@ function renderWeightChart(entries, rangeDays = 30) {
 
   const values = filtered.map(e => e.value);
 
-  // Trendline
+  // Trendline — only calculate if we have at least 2 points
   const pts = filtered.map((e, i) => ({ x: i, y: e.value }));
   const trend = linearRegression(pts);
-
-  // Full trend line points mapped to same x range
-  const trendData = filtered.map((_, i) => {
-    const t0 = trend[0], t1 = trend[1];
-    const x0 = t0.x, x1 = t1.x;
-    const slope = x1 !== x0 ? (t1.y - t0.y) / (x1 - x0) : 0;
-    return t0.y + slope * (i - x0);
-  });
+  const trendData = trend.length < 2
+    ? filtered.map(e => e.value)  // flat line at actual value for single point
+    : filtered.map((_, i) => {
+        const t0 = trend[0], t1 = trend[1];
+        const slope = t1.x !== t0.x ? (t1.y - t0.y) / (t1.x - t0.x) : 0;
+        return t0.y + slope * (i - t0.x);
+      });
 
   _weightChart = new Chart(canvas, {
     type: 'line',
