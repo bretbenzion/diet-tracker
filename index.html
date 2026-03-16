@@ -340,27 +340,19 @@
         <button class="modal-close" data-close="modal-add-food">✕</button>
       </div>
       <div class="modal-tabs">
-        <button class="tab-btn active" data-tab="recent">Recent</button>
-        <button class="tab-btn" data-tab="library">Library</button>
-        <button class="tab-btn" data-tab="manual">Manual</button>
+        <button class="tab-btn active" data-tab="library">Library</button>
+        <button class="tab-btn" data-tab="manual">Add New</button>
         <button class="tab-btn" data-tab="ai">✦ AI Search</button>
         <button class="tab-btn" data-tab="scan">📷 Scan</button>
       </div>
-      <!-- Recent Tab -->
-      <div id="tab-recent" class="tab-content active">
-        <div class="search-bar-wrap">
-          <input type="text" id="recent-search" placeholder="Search recent foods…" class="search-input" />
-        </div>
-        <div id="recent-food-list" class="selectable-list"></div>
-      </div>
-      <!-- Library Tab -->
-      <div id="tab-library" class="tab-content hidden">
+      <!-- Library Tab (default) -->
+      <div id="tab-library" class="tab-content active">
         <div class="search-bar-wrap">
           <input type="text" id="library-search-modal" placeholder="Search library…" class="search-input" />
         </div>
         <div id="library-food-list-modal" class="selectable-list"></div>
       </div>
-      <!-- Manual Tab -->
+      <!-- Add New Tab -->
       <div id="tab-manual" class="tab-content hidden">
         <form id="manual-food-form" class="food-form" autocomplete="off">
           <div class="form-group">
@@ -396,8 +388,7 @@
             </div>
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-secondary" id="save-to-library-btn">Save to Library</button>
-            <button type="submit" class="btn-primary">Add to Log</button>
+            <button type="submit" class="btn-primary">Save to Library &amp; Log</button>
           </div>
         </form>
       </div>

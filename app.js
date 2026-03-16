@@ -188,19 +188,16 @@ document.getElementById('delete-entry-btn').addEventListener('click', () => {
 // ADD FOOD MODAL
 // ─────────────────────────────────────────────────────
 function openAddFoodModal() {
-  // Reset tabs
   document.querySelectorAll('#modal-add-food .tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#modal-add-food .tab-content').forEach(t => {
     t.classList.remove('active');
     t.classList.add('hidden');
   });
-  document.querySelector('[data-tab="recent"]').classList.add('active');
-  document.getElementById('tab-recent').classList.add('active');
-  document.getElementById('tab-recent').classList.remove('hidden');
-
-  // Populate recent
-  populateRecentList();
-
+  document.querySelector('[data-tab="library"]').classList.add('active');
+  document.getElementById('tab-library').classList.add('active');
+  document.getElementById('tab-library').classList.remove('hidden');
+  document.getElementById('library-search-modal').value = '';
+  populateLibraryListModal();
   openModal('modal-add-food');
 }
 
@@ -209,15 +206,6 @@ function openAddFoodModal() {
   if (btn) btn.addEventListener('click', openAddFoodModal);
 });
 
-// Recent + Library lists
-function populateRecentList(filter = '') {
-  const items = Store.getRecentFoods(40);
-  const filtered = filter
-    ? items.filter(i => i.name.toLowerCase().includes(filter.toLowerCase()))
-    : items;
-  renderSelectableList('recent-food-list', filtered, openServingModal);
-}
-
 function populateLibraryListModal(filter = '') {
   const items = Store.getLibrary();
   const filtered = filter
@@ -225,6 +213,10 @@ function populateLibraryListModal(filter = '') {
     : items;
   renderSelectableList('library-food-list-modal', filtered, openServingModal);
 }
+
+document.getElementById('library-search-modal').addEventListener('input', e => {
+  populateLibraryListModal(e.target.value);
+});
 
 function renderSelectableList(containerId, items, onSelect) {
   const container = document.getElementById(containerId);
@@ -248,19 +240,6 @@ function renderSelectableList(containerId, items, onSelect) {
     el.addEventListener('click', () => onSelect(items[i]));
   });
 }
-
-document.getElementById('recent-search').addEventListener('input', e => {
-  populateRecentList(e.target.value);
-});
-
-document.getElementById('library-search-modal').addEventListener('input', e => {
-  populateLibraryListModal(e.target.value);
-});
-
-// When library tab activated
-document.querySelector('[data-tab="library"]').addEventListener('click', () => {
-  populateLibraryListModal();
-});
 
 // ─────────────────────────────────────────────────────
 // SERVING MODAL
@@ -321,38 +300,7 @@ document.getElementById('manual-food-form').addEventListener('submit', e => {
   const name = document.getElementById('manual-name').value.trim();
   if (!name) return;
 
-  const servingSize = parseFloat(document.getElementById('manual-serving-size').value) || 1;
-  const servingUnit = document.getElementById('manual-serving-unit').value.trim();
-  const cal = parseFloat(document.getElementById('manual-cal').value) || 0;
-  const protein = parseFloat(document.getElementById('manual-prot').value) || 0;
-  const carbs = parseFloat(document.getElementById('manual-carb').value) || 0;
-  const fat = parseFloat(document.getElementById('manual-fat').value) || 0;
-
-  const foodData = { name, servingSize, servingUnit, cal, protein, carbs, fat };
-
-  // Add to today's log
-  Store.addLogEntry(currentDate, { ...foodData, amount: 1 });
-
-  // Auto-sync to library: update if name already exists, otherwise add new
-  const library = Store.getLibrary();
-  const existing = library.find(i => i.name.toLowerCase() === name.toLowerCase());
-  if (existing) {
-    Store.updateLibraryItem(existing.id, foodData);
-  } else {
-    Store.addToLibrary(foodData);
-  }
-
-  closeModal('modal-add-food');
-  refreshPage(currentPage);
-  refreshFoodLibrary(); // always sync library view regardless of current page
-  showToast(`${name} added!`, 'success');
-  document.getElementById('manual-food-form').reset();
-});
-
-document.getElementById('save-to-library-btn').addEventListener('click', () => {
-  const name = document.getElementById('manual-name').value.trim();
-  if (!name) { showToast('Please enter a food name', 'error'); return; }
-  Store.addToLibrary({
+  const foodData = {
     name,
     servingSize: parseFloat(document.getElementById('manual-serving-size').value) || 1,
     servingUnit: document.getElementById('manual-serving-unit').value.trim(),
@@ -360,8 +308,25 @@ document.getElementById('save-to-library-btn').addEventListener('click', () => {
     protein: parseFloat(document.getElementById('manual-prot').value) || 0,
     carbs:   parseFloat(document.getElementById('manual-carb').value) || 0,
     fat:     parseFloat(document.getElementById('manual-fat').value) || 0,
-  });
-  showToast(`${name} saved to library!`, 'success');
+  };
+
+  // Save to library (update if exists, add if new)
+  const library = Store.getLibrary();
+  const existing = library.find(i => i.name.toLowerCase() === name.toLowerCase());
+  let libraryItem;
+  if (existing) {
+    Store.updateLibraryItem(existing.id, foodData);
+    libraryItem = { ...existing, ...foodData };
+  } else {
+    libraryItem = Store.addToLibrary(foodData);
+  }
+
+  refreshFoodLibrary();
+  document.getElementById('manual-food-form').reset();
+
+  // Open serving modal using the clean library item so multipliers are always correct
+  closeModal('modal-add-food');
+  openServingModal(libraryItem);
 });
 
 // ─────────────────────────────────────────────────────
@@ -424,16 +389,34 @@ function openAiApprovalModal(food) {
 document.getElementById('ai-approve-form').addEventListener('submit', e => {
   e.preventDefault();
   const entry = readAiApproveForm();
-  Store.addLogEntry(currentDate, { ...entry, amount: 1 });
+
+  // Save to library first (update if name exists, add if new)
+  const library = Store.getLibrary();
+  const existing = library.find(i => i.name.toLowerCase() === entry.name.toLowerCase());
+  let libraryItem;
+  if (existing) {
+    Store.updateLibraryItem(existing.id, entry);
+    libraryItem = { ...existing, ...entry };
+  } else {
+    libraryItem = Store.addToLibrary(entry);
+  }
+  refreshFoodLibrary();
+
+  // Close approval modal and open serving modal from clean library item
   closeModal('modal-ai-approve');
   closeModal('modal-add-food');
-  refreshPage(currentPage);
-  showToast(`${entry.name} added!`, 'success');
+  openServingModal(libraryItem);
 });
 
 document.getElementById('ai-approve-library-btn').addEventListener('click', () => {
   const entry = readAiApproveForm();
-  Store.addToLibrary(entry);
+  const library = Store.getLibrary();
+  const existing = library.find(i => i.name.toLowerCase() === entry.name.toLowerCase());
+  if (existing) {
+    Store.updateLibraryItem(existing.id, entry);
+  } else {
+    Store.addToLibrary(entry);
+  }
   showToast(`${entry.name} saved to library!`, 'success');
   refreshFoodLibrary();
 });
