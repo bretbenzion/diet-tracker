@@ -31,13 +31,28 @@ const Store = {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   },
 
+  // Recalculate calories from macros (Atwater: protein 4, carbs 4, fat 9)
+  _recalcCal(item) {
+    const cal = Math.round(
+      (parseFloat(item.protein) || 0) * 4 +
+      (parseFloat(item.carbs)   || 0) * 4 +
+      (parseFloat(item.fat)     || 0) * 9
+    );
+    return { ...item, cal };
+  },
+
   // ── Food Log ─────────────────────────────────────
   getLog(date) {
     const all = this._get(KEYS.LOG, {});
-    return all[date] || [];
+    return (all[date] || []).map(e => this._recalcCal(e));
   },
   getAllLog() {
-    return this._get(KEYS.LOG, {});
+    const all = this._get(KEYS.LOG, {});
+    const result = {};
+    for (const date in all) {
+      result[date] = (all[date] || []).map(e => this._recalcCal(e));
+    }
+    return result;
   },
   addLogEntry(date, entry) {
     const all = this._get(KEYS.LOG, {});
@@ -96,7 +111,7 @@ const Store = {
 
   // ── Food Library ─────────────────────────────────
   getLibrary() {
-    return this._get(KEYS.LIBRARY, []);
+    return this._get(KEYS.LIBRARY, []).map(i => this._recalcCal(i));
   },
   addToLibrary(food) {
     const lib = this._get(KEYS.LIBRARY, []);
