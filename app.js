@@ -244,44 +244,106 @@ function renderSelectableList(containerId, items, onSelect) {
 // ─────────────────────────────────────────────────────
 // SERVING MODAL
 // ─────────────────────────────────────────────────────
+// mode: 'unit' = user enters raw amount in food's unit (e.g. grams)
+//       'servings' = user enters number of servings
+let servingMode = 'unit';
+
 function openServingModal(food) {
   pendingFoodForServing = food;
-  document.getElementById('serving-food-name').textContent = food.name;
   const baseSize = food.servingSize || 1;
   const baseUnit = food.servingUnit || '';
-  document.getElementById('serving-base-info').textContent =
-    `Base serving: ${baseSize}${baseUnit ? ' ' + baseUnit : ''}`;
-  document.getElementById('serving-amount').value = 1;
-  document.getElementById('serving-unit').value = baseUnit;
 
-  // Show macros for 1 serving
-  updateServingPreview(1);
+  document.getElementById('serving-food-name').textContent = food.name;
+  document.getElementById('serving-base-info').textContent =
+    `1 serving = ${baseSize}${baseUnit ? ' ' + baseUnit : ''} · ${food.cal} kcal`;
+
+  // Default to unit mode if food has a unit, otherwise servings
+  servingMode = baseUnit ? 'unit' : 'servings';
+  setServingMode(servingMode, food);
+
+  // Default input to 1 serving worth of the unit
+  document.getElementById('serving-amount').value = baseUnit ? baseSize : 1;
+  updateServingPreview();
   openModal('modal-serving');
 }
 
-function updateServingPreview(amt) {
+function setServingMode(mode, food) {
+  food = food || pendingFoodForServing;
+  if (!food) return;
+  servingMode = mode;
+  const baseSize = food.servingSize || 1;
+  const baseUnit = food.servingUnit || '';
+  const unitBtn     = document.getElementById('mode-unit-btn');
+  const servingsBtn = document.getElementById('mode-servings-btn');
+
+  if (mode === 'unit') {
+    unitBtn.className     = 'btn-primary';
+    servingsBtn.className = 'btn-secondary';
+    unitBtn.textContent     = baseUnit || 'Amount';
+    document.getElementById('serving-amount-label').textContent =
+      `Amount (${baseUnit || 'units'})`;
+  } else {
+    unitBtn.className     = 'btn-secondary';
+    servingsBtn.className = 'btn-primary';
+    unitBtn.textContent   = baseUnit || 'Amount';
+    document.getElementById('serving-amount-label').textContent =
+      `Servings (1 = ${baseSize}${baseUnit ? ' ' + baseUnit : ''})`;
+  }
+}
+
+function updateServingPreview() {
   if (!pendingFoodForServing) return;
   const food = pendingFoodForServing;
-  const scaled = scaleMacros(food, amt);
+  const raw = parseFloat(document.getElementById('serving-amount').value) || 0;
+  const baseSize = food.servingSize || 1;
+  // Convert raw input to a serving multiplier
+  const ratio = servingMode === 'unit' ? raw / baseSize : raw;
+  const scaled = scaleMacros(food, ratio);
   renderMacrosPreview('serving-macros-preview', scaled.cal, scaled.protein, scaled.carbs, scaled.fat);
 }
 
-document.getElementById('serving-amount').addEventListener('input', e => {
-  updateServingPreview(parseFloat(e.target.value) || 0);
+document.getElementById('mode-unit-btn').addEventListener('click', () => {
+  if (!pendingFoodForServing) return;
+  const food = pendingFoodForServing;
+  const currentVal = parseFloat(document.getElementById('serving-amount').value) || 1;
+  setServingMode('unit', food);
+  // Convert current servings value to unit amount
+  if (servingMode === 'unit') {
+    document.getElementById('serving-amount').value = round1(currentVal * (food.servingSize || 1));
+  }
+  updateServingPreview();
+});
+
+document.getElementById('mode-servings-btn').addEventListener('click', () => {
+  if (!pendingFoodForServing) return;
+  const food = pendingFoodForServing;
+  const currentVal = parseFloat(document.getElementById('serving-amount').value) || 1;
+  const wasUnit = servingMode === 'unit';
+  setServingMode('servings', food);
+  // Convert current unit amount to servings
+  if (wasUnit) {
+    document.getElementById('serving-amount').value = round1(currentVal / (food.servingSize || 1));
+  }
+  updateServingPreview();
+});
+
+document.getElementById('serving-amount').addEventListener('input', () => {
+  updateServingPreview();
 });
 
 document.getElementById('confirm-serving-btn').addEventListener('click', () => {
   if (!pendingFoodForServing) return;
   const food = pendingFoodForServing;
-  const amt = parseFloat(document.getElementById('serving-amount').value) || 1;
-  const unit = document.getElementById('serving-unit').value || food.servingUnit;
-  const scaled = scaleMacros(food, amt);
+  const raw = parseFloat(document.getElementById('serving-amount').value) || 1;
+  const baseSize = food.servingSize || 1;
+  const ratio = servingMode === 'unit' ? raw / baseSize : raw;
+  const scaled = scaleMacros(food, ratio);
 
   Store.addLogEntry(currentDate, {
     name: food.name,
-    amount: amt,
-    servingSize: food.servingSize || 1,
-    servingUnit: unit,
+    amount: round1(ratio),
+    servingSize: baseSize,
+    servingUnit: food.servingUnit || '',
     ...scaled,
   });
 
