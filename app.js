@@ -117,16 +117,38 @@ function refreshLogPage() {
   document.getElementById('total-fat').textContent  = `F: ${round1(totals.fat)}g`;
 }
 
-function updateEditEntryCalField() {
-  const protein = parseFloat(document.getElementById('edit-entry-prot').value) || 0;
-  const carbs   = parseFloat(document.getElementById('edit-entry-carb').value) || 0;
-  const fat     = parseFloat(document.getElementById('edit-entry-fat').value) || 0;
-  document.getElementById('edit-entry-cal').value = round1(protein * 4 + carbs * 4 + fat * 9);
+// ── Calorie auto-calc polling ─────────────────────────
+// Mobile number inputs don't reliably fire input/change/keyup.
+// Poll every 300ms and recalculate whenever macro fields have values.
+function recalcAllCalFields() {
+  const sets = [
+    { macros: ['edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat'], cal: 'edit-entry-cal' },
+    { macros: ['manual-prot',     'manual-carb',     'manual-fat'    ], cal: 'manual-cal'     },
+    { macros: ['ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat'], cal: 'ai-approve-cal' },
+    { macros: ['lib-prot',        'lib-carb',        'lib-fat'       ], cal: 'lib-cal'        },
+  ];
+  sets.forEach(({ macros, cal }) => {
+    const calEl = document.getElementById(cal);
+    if (!calEl) return;
+    const [p, c, f] = macros.map(id => parseFloat(document.getElementById(id)?.value) || 0);
+    calEl.value = Math.round(p * 4 + c * 4 + f * 9);
+  });
 }
-['edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat'].forEach(id => {
-  ['input', 'change', 'keyup'].forEach(ev =>
-    document.getElementById(id).addEventListener(ev, updateEditEntryCalField)
-  );
+setInterval(recalcAllCalFields, 300);
+
+// Also wire up events as a secondary trigger for instant feedback on desktop
+function updateEditEntryCalField() { recalcAllCalFields(); }
+function updateManualCalField()    { recalcAllCalFields(); }
+function updateAiApproveCalField() { recalcAllCalFields(); }
+function updateLibCalField()       { recalcAllCalFields(); }
+
+['edit-entry-prot','edit-entry-carb','edit-entry-fat',
+ 'manual-prot','manual-carb','manual-fat',
+ 'ai-approve-prot','ai-approve-carb','ai-approve-fat',
+ 'lib-prot','lib-carb','lib-fat'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  ['input','change','keyup'].forEach(ev => el.addEventListener(ev, recalcAllCalFields));
 });
 
 // Base macros per serving for the entry being edited
@@ -380,19 +402,6 @@ document.getElementById('confirm-serving-btn').addEventListener('click', e => {
 // MANUAL ENTRY FORM
 // ─────────────────────────────────────────────────────
 
-// Auto-calculate calories as user types macros
-function updateManualCalField() {
-  const protein = parseFloat(document.getElementById('manual-prot').value) || 0;
-  const carbs   = parseFloat(document.getElementById('manual-carb').value) || 0;
-  const fat     = parseFloat(document.getElementById('manual-fat').value) || 0;
-  document.getElementById('manual-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
-}
-['manual-prot', 'manual-carb', 'manual-fat'].forEach(id => {
-  ['input', 'change', 'keyup'].forEach(ev =>
-    document.getElementById(id).addEventListener(ev, updateManualCalField)
-  );
-});
-
 document.getElementById('manual-food-form').addEventListener('submit', e => {
   e.preventDefault();
   const name = document.getElementById('manual-name').value.trim();
@@ -476,18 +485,6 @@ async function doAiSearch() {
 // ─────────────────────────────────────────────────────
 // AI APPROVAL MODAL
 // ─────────────────────────────────────────────────────
-function updateAiApproveCalField() {
-  const protein = parseFloat(document.getElementById('ai-approve-prot').value) || 0;
-  const carbs   = parseFloat(document.getElementById('ai-approve-carb').value) || 0;
-  const fat     = parseFloat(document.getElementById('ai-approve-fat').value) || 0;
-  document.getElementById('ai-approve-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
-}
-['ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat'].forEach(id => {
-  ['input', 'change', 'keyup'].forEach(ev =>
-    document.getElementById(id).addEventListener(ev, updateAiApproveCalField)
-  );
-});
-
 function openAiApprovalModal(food) {
   pendingFoodForApproval = food;
   document.getElementById('ai-approve-name').value         = food.name || '';
@@ -825,19 +822,6 @@ function openEditLibraryItem(id) {
   updateLibCalField();
   openModal('modal-manual-library');
 }
-
-// Auto-calculate calories in the library modal as user types macros
-function updateLibCalField() {
-  const protein = parseFloat(document.getElementById('lib-prot').value) || 0;
-  const carbs   = parseFloat(document.getElementById('lib-carb').value) || 0;
-  const fat     = parseFloat(document.getElementById('lib-fat').value) || 0;
-  document.getElementById('lib-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
-}
-['lib-prot', 'lib-carb', 'lib-fat'].forEach(id => {
-  ['input', 'change', 'keyup'].forEach(ev =>
-    document.getElementById(id).addEventListener(ev, updateLibCalField)
-  );
-});
 
 document.getElementById('manual-library-form').addEventListener('submit', e => {
   e.preventDefault();
