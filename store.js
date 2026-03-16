@@ -31,28 +31,24 @@ const Store = {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   },
 
-  // Recalculate calories from macros (Atwater: protein 4, carbs 4, fat 9)
-  _recalcCal(item) {
-    const cal = Math.round(
-      (parseFloat(item.protein) || 0) * 4 +
-      (parseFloat(item.carbs)   || 0) * 4 +
-      (parseFloat(item.fat)     || 0) * 9
-    );
-    return { ...item, cal };
+  // Always derive calories from macros on read — fixes stale/wrong stored cal values
+  _cal(item) {
+    return {
+      ...item,
+      cal: Math.round((parseFloat(item.protein)||0)*4 + (parseFloat(item.carbs)||0)*4 + (parseFloat(item.fat)||0)*9)
+    };
   },
 
   // ── Food Log ─────────────────────────────────────
   getLog(date) {
     const all = this._get(KEYS.LOG, {});
-    return (all[date] || []).map(e => this._recalcCal(e));
+    return (all[date] || []).map(e => this._cal(e));
   },
   getAllLog() {
     const all = this._get(KEYS.LOG, {});
-    const result = {};
-    for (const date in all) {
-      result[date] = (all[date] || []).map(e => this._recalcCal(e));
-    }
-    return result;
+    const out = {};
+    for (const d in all) out[d] = (all[d] || []).map(e => this._cal(e));
+    return out;
   },
   addLogEntry(date, entry) {
     const all = this._get(KEYS.LOG, {});
@@ -111,7 +107,7 @@ const Store = {
 
   // ── Food Library ─────────────────────────────────
   getLibrary() {
-    return this._get(KEYS.LIBRARY, []).map(i => this._recalcCal(i));
+    return this._get(KEYS.LIBRARY, []).map(i => this._cal(i));
   },
   addToLibrary(food) {
     const lib = this._get(KEYS.LIBRARY, []);
@@ -213,10 +209,13 @@ const Store = {
   getDayTotals(date) {
     const entries = this.getLog(date);
     return entries.reduce((acc, e) => {
-      acc.cal     += (parseFloat(e.cal)     || 0);
-      acc.protein += (parseFloat(e.protein) || 0);
-      acc.carbs   += (parseFloat(e.carbs)   || 0);
-      acc.fat     += (parseFloat(e.fat)     || 0);
+      const p = parseFloat(e.protein) || 0;
+      const c = parseFloat(e.carbs)   || 0;
+      const f = parseFloat(e.fat)     || 0;
+      acc.protein += p;
+      acc.carbs   += c;
+      acc.fat     += f;
+      acc.cal     += Math.round(p * 4 + c * 4 + f * 9);
       return acc;
     }, { cal: 0, protein: 0, carbs: 0, fat: 0 });
   },

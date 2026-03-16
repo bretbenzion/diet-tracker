@@ -113,11 +113,14 @@ function servingLabel(entry) {
 
 // ── Scale macros by ratio ─────────────────────────────
 function scaleMacros(base, ratio) {
+  const protein = round1((parseFloat(base.protein) || 0) * ratio);
+  const carbs   = round1((parseFloat(base.carbs)   || 0) * ratio);
+  const fat     = round1((parseFloat(base.fat)     || 0) * ratio);
   return {
-    cal:     round1((parseFloat(base.cal)     || 0) * ratio),
-    protein: round1((parseFloat(base.protein) || 0) * ratio),
-    carbs:   round1((parseFloat(base.carbs)   || 0) * ratio),
-    fat:     round1((parseFloat(base.fat)     || 0) * ratio),
+    protein,
+    carbs,
+    fat,
+    cal: Math.round(protein * 4 + carbs * 4 + fat * 9),
   };
 }
 
@@ -136,7 +139,7 @@ function renderFoodRows(entries, container, editable = false) {
       <div class="food-entry-macros">
         ${macroChips(e)}
       </div>
-      <div class="food-entry-cal">${round0(e.cal)} kcal</div>
+      <div class="food-entry-cal">${round0(Math.round((parseFloat(e.protein)||0)*4+(parseFloat(e.carbs)||0)*4+(parseFloat(e.fat)||0)*9))} kcal</div>
     </div>
   `).join('');
 }

@@ -117,39 +117,62 @@ function refreshLogPage() {
   document.getElementById('total-fat').textContent  = `F: ${round1(totals.fat)}g`;
 }
 
-// ── Calorie auto-calc polling ─────────────────────────
-// Mobile number inputs don't reliably fire input/change/keyup.
-// Poll every 300ms and recalculate whenever macro fields have values.
-function recalcAllCalFields() {
-  const sets = [
-    { macros: ['edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat'], cal: 'edit-entry-cal' },
-    { macros: ['manual-prot',     'manual-carb',     'manual-fat'    ], cal: 'manual-cal'     },
-    { macros: ['ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat'], cal: 'ai-approve-cal' },
-    { macros: ['lib-prot',        'lib-carb',        'lib-fat'       ], cal: 'lib-cal'        },
-  ];
-  sets.forEach(({ macros, cal }) => {
-    const calEl = document.getElementById(cal);
-    if (!calEl) return;
-    const [p, c, f] = macros.map(id => parseFloat(document.getElementById(id)?.value) || 0);
-    calEl.value = Math.round(p * 4 + c * 4 + f * 9);
+// ── Calorie auto-calc ─────────────────────────────────
+// Recalculate on blur (when user leaves a field) — reliable on all mobile browsers
+function calcCal(p, c, f) {
+  return Math.round((parseFloat(p)||0)*4 + (parseFloat(c)||0)*4 + (parseFloat(f)||0)*9);
+}
+
+function wireCalcListeners(protId, carbId, fatId, calId) {
+  function update() {
+    const el = document.getElementById(calId);
+    if (el) el.value = calcCal(
+      document.getElementById(protId).value,
+      document.getElementById(carbId).value,
+      document.getElementById(fatId).value
+    );
+  }
+  [protId, carbId, fatId].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('blur',   update);
+    el.addEventListener('change', update);
   });
 }
-setInterval(recalcAllCalFields, 300);
 
-// Also wire up events as a secondary trigger for instant feedback on desktop
-function updateEditEntryCalField() { recalcAllCalFields(); }
-function updateManualCalField()    { recalcAllCalFields(); }
-function updateAiApproveCalField() { recalcAllCalFields(); }
-function updateLibCalField()       { recalcAllCalFields(); }
+wireCalcListeners('edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat', 'edit-entry-cal');
+wireCalcListeners('manual-prot',     'manual-carb',     'manual-fat',     'manual-cal');
+wireCalcListeners('ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat', 'ai-approve-cal');
+wireCalcListeners('lib-prot',        'lib-carb',        'lib-fat',        'lib-cal');
 
-['edit-entry-prot','edit-entry-carb','edit-entry-fat',
- 'manual-prot','manual-carb','manual-fat',
- 'ai-approve-prot','ai-approve-carb','ai-approve-fat',
- 'lib-prot','lib-carb','lib-fat'].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  ['input','change','keyup'].forEach(ev => el.addEventListener(ev, recalcAllCalFields));
-});
+function updateEditEntryCalField() {
+  document.getElementById('edit-entry-cal').textContent = calcCal(
+    document.getElementById('edit-entry-prot').value,
+    document.getElementById('edit-entry-carb').value,
+    document.getElementById('edit-entry-fat').value
+  );
+}
+function updateAiApproveCalField() {
+  document.getElementById('ai-approve-cal').textContent = calcCal(
+    document.getElementById('ai-approve-prot').value,
+    document.getElementById('ai-approve-carb').value,
+    document.getElementById('ai-approve-fat').value
+  );
+}
+function updateLibCalField() {
+  document.getElementById('lib-cal').textContent = calcCal(
+    document.getElementById('lib-prot').value,
+    document.getElementById('lib-carb').value,
+    document.getElementById('lib-fat').value
+  );
+}
+function updateManualCalField() {
+  document.getElementById('manual-cal').textContent = calcCal(
+    document.getElementById('manual-prot').value,
+    document.getElementById('manual-carb').value,
+    document.getElementById('manual-fat').value
+  );
+}
 
 // Base macros per serving for the entry being edited
 let editingEntryBase = null;
@@ -192,7 +215,7 @@ document.getElementById('edit-entry-amount').addEventListener('input', e => {
   document.getElementById('edit-entry-prot').value = protein;
   document.getElementById('edit-entry-carb').value = carbs;
   document.getElementById('edit-entry-fat').value  = fat;
-  document.getElementById('edit-entry-cal').value  = round1(protein * 4 + carbs * 4 + fat * 9);
+  document.getElementById('edit-entry-cal').textContent  = round1(protein * 4 + carbs * 4 + fat * 9);
 });
 
 document.getElementById('edit-entry-form').addEventListener('submit', e => {
@@ -764,7 +787,7 @@ function refreshFoodLibrary(filter = '') {
       <div class="library-food-name">${escHtml(item.name)}</div>
       <div class="library-food-serving">${item.servingSize || 1}${item.servingUnit ? ' ' + item.servingUnit : ''}</div>
       <div class="library-macro-row">
-        <span style="font-weight:700;font-size:13px">${round0(item.cal)} kcal</span>
+        <span style="font-weight:700;font-size:13px">${round0(Math.round((parseFloat(item.protein)||0)*4+(parseFloat(item.carbs)||0)*4+(parseFloat(item.fat)||0)*9))} kcal</span>
         ${macroChips(item)}
       </div>
     </div>
