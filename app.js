@@ -848,16 +848,11 @@ document.getElementById('clear-data-btn').addEventListener('click', () => {
 // SERVICE WORKER (PWA)
 // ─────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────
-// SERVICE WORKER — unregister everything and clear all
-// caches so stale files are never served again
+// SERVICE WORKER
 // ─────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-  caches.keys().then(keys => {
-    keys.forEach(key => caches.delete(key));
-  });
+  navigator.serviceWorker.register('/diet-tracker/sw.js', { scope: '/diet-tracker/' })
+    .catch(err => console.warn('SW registration failed:', err));
 }
 
 // ─────────────────────────────────────────────────────
