@@ -117,7 +117,17 @@ function refreshLogPage() {
   document.getElementById('total-fat').textContent  = `F: ${round1(totals.fat)}g`;
 }
 
-// Base macros per serving for the entry being edited (used to recalculate on amount change)
+function updateEditEntryCalField() {
+  const protein = parseFloat(document.getElementById('edit-entry-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('edit-entry-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('edit-entry-fat').value) || 0;
+  document.getElementById('edit-entry-cal').value = round1(protein * 4 + carbs * 4 + fat * 9);
+}
+['edit-entry-prot', 'edit-entry-carb', 'edit-entry-fat'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateEditEntryCalField);
+});
+
+// Base macros per serving for the entry being edited
 let editingEntryBase = null;
 
 function openEditEntry(id) {
@@ -126,27 +136,25 @@ function openEditEntry(id) {
   if (!entry) return;
 
   editingEntryId = id;
-
-  // Store per-serving base macros so we can scale when amount changes.
-  // The entry stores already-scaled values (amount * per-serving).
-  // Recover the per-serving base by dividing by the stored amount.
   const storedAmt = entry.amount || 1;
+
+  // Per-serving base macros (divide stored scaled values by amount)
   editingEntryBase = {
-    cal:     (parseFloat(entry.cal)     || 0) / storedAmt,
     protein: (parseFloat(entry.protein) || 0) / storedAmt,
     carbs:   (parseFloat(entry.carbs)   || 0) / storedAmt,
     fat:     (parseFloat(entry.fat)     || 0) / storedAmt,
-    servingSize: entry.servingSize || 1,
-    servingUnit: entry.servingUnit || '',
   };
+  editingEntryBase.cal = Math.round(
+    editingEntryBase.protein * 4 + editingEntryBase.carbs * 4 + editingEntryBase.fat * 9
+  );
 
   document.getElementById('edit-entry-name').value   = entry.name || '';
   document.getElementById('edit-entry-amount').value = storedAmt;
   document.getElementById('edit-entry-unit').value   = entry.servingUnit || '';
-  document.getElementById('edit-entry-cal').value    = round1(entry.cal || 0);
   document.getElementById('edit-entry-prot').value   = round1(entry.protein || 0);
   document.getElementById('edit-entry-carb').value   = round1(entry.carbs || 0);
   document.getElementById('edit-entry-fat').value    = round1(entry.fat || 0);
+  updateEditEntryCalField();
   openModal('modal-edit-entry');
 }
 
@@ -154,22 +162,28 @@ function openEditEntry(id) {
 document.getElementById('edit-entry-amount').addEventListener('input', e => {
   if (!editingEntryBase) return;
   const amt = parseFloat(e.target.value) || 0;
-  document.getElementById('edit-entry-cal').value  = round1(editingEntryBase.cal     * amt);
-  document.getElementById('edit-entry-prot').value = round1(editingEntryBase.protein * amt);
-  document.getElementById('edit-entry-carb').value = round1(editingEntryBase.carbs   * amt);
-  document.getElementById('edit-entry-fat').value  = round1(editingEntryBase.fat     * amt);
+  const protein = round1(editingEntryBase.protein * amt);
+  const carbs   = round1(editingEntryBase.carbs   * amt);
+  const fat     = round1(editingEntryBase.fat     * amt);
+  document.getElementById('edit-entry-prot').value = protein;
+  document.getElementById('edit-entry-carb').value = carbs;
+  document.getElementById('edit-entry-fat').value  = fat;
+  document.getElementById('edit-entry-cal').value  = round1(protein * 4 + carbs * 4 + fat * 9);
 });
 
 document.getElementById('edit-entry-form').addEventListener('submit', e => {
   e.preventDefault();
+  const protein = parseFloat(document.getElementById('edit-entry-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('edit-entry-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('edit-entry-fat').value) || 0;
   const updates = {
-    name:    document.getElementById('edit-entry-name').value,
-    amount:  parseFloat(document.getElementById('edit-entry-amount').value) || 1,
+    name:        document.getElementById('edit-entry-name').value,
+    amount:      parseFloat(document.getElementById('edit-entry-amount').value) || 1,
     servingUnit: document.getElementById('edit-entry-unit').value,
-    cal:     parseFloat(document.getElementById('edit-entry-cal').value) || 0,
-    protein: parseFloat(document.getElementById('edit-entry-prot').value) || 0,
-    carbs:   parseFloat(document.getElementById('edit-entry-carb').value) || 0,
-    fat:     parseFloat(document.getElementById('edit-entry-fat').value) || 0,
+    protein,
+    carbs,
+    fat,
+    cal: Math.round(protein * 4 + carbs * 4 + fat * 9),
   };
   Store.updateLogEntry(currentDate, editingEntryId, updates);
   closeModal('modal-edit-entry');
@@ -458,15 +472,25 @@ async function doAiSearch() {
 // ─────────────────────────────────────────────────────
 // AI APPROVAL MODAL
 // ─────────────────────────────────────────────────────
+function updateAiApproveCalField() {
+  const protein = parseFloat(document.getElementById('ai-approve-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('ai-approve-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('ai-approve-fat').value) || 0;
+  document.getElementById('ai-approve-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
+}
+['ai-approve-prot', 'ai-approve-carb', 'ai-approve-fat'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateAiApproveCalField);
+});
+
 function openAiApprovalModal(food) {
   pendingFoodForApproval = food;
   document.getElementById('ai-approve-name').value         = food.name || '';
   document.getElementById('ai-approve-serving-size').value = food.servingSize || 1;
   document.getElementById('ai-approve-serving-unit').value = food.servingUnit || '';
-  document.getElementById('ai-approve-cal').value          = food.cal || 0;
   document.getElementById('ai-approve-prot').value         = food.protein || 0;
   document.getElementById('ai-approve-carb').value         = food.carbs || 0;
   document.getElementById('ai-approve-fat').value          = food.fat || 0;
+  updateAiApproveCalField();
   openModal('modal-ai-approve');
 }
 
@@ -506,14 +530,17 @@ document.getElementById('ai-approve-library-btn').addEventListener('click', () =
 });
 
 function readAiApproveForm() {
+  const protein = parseFloat(document.getElementById('ai-approve-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('ai-approve-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('ai-approve-fat').value) || 0;
   return {
     name:        document.getElementById('ai-approve-name').value.trim(),
     servingSize: parseFloat(document.getElementById('ai-approve-serving-size').value) || 1,
     servingUnit: document.getElementById('ai-approve-serving-unit').value.trim(),
-    cal:         parseFloat(document.getElementById('ai-approve-cal').value) || 0,
-    protein:     parseFloat(document.getElementById('ai-approve-prot').value) || 0,
-    carbs:       parseFloat(document.getElementById('ai-approve-carb').value) || 0,
-    fat:         parseFloat(document.getElementById('ai-approve-fat').value) || 0,
+    protein,
+    carbs,
+    fat,
+    cal: Math.round(protein * 4 + carbs * 4 + fat * 9),
   };
 }
 
@@ -785,23 +812,38 @@ function openEditLibraryItem(id) {
   document.getElementById('lib-name').value         = item.name || '';
   document.getElementById('lib-serving-size').value = item.servingSize || 1;
   document.getElementById('lib-serving-unit').value = item.servingUnit || '';
-  document.getElementById('lib-cal').value          = item.cal || 0;
   document.getElementById('lib-prot').value         = item.protein || 0;
   document.getElementById('lib-carb').value         = item.carbs || 0;
   document.getElementById('lib-fat').value          = item.fat || 0;
+  // Always show recalculated calories, not stale stored value
+  updateLibCalField();
   openModal('modal-manual-library');
 }
 
+// Auto-calculate calories in the library modal as user types macros
+function updateLibCalField() {
+  const protein = parseFloat(document.getElementById('lib-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('lib-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('lib-fat').value) || 0;
+  document.getElementById('lib-cal').value = Math.round(protein * 4 + carbs * 4 + fat * 9);
+}
+['lib-prot', 'lib-carb', 'lib-fat'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateLibCalField);
+});
+
 document.getElementById('manual-library-form').addEventListener('submit', e => {
   e.preventDefault();
+  const protein = parseFloat(document.getElementById('lib-prot').value) || 0;
+  const carbs   = parseFloat(document.getElementById('lib-carb').value) || 0;
+  const fat     = parseFloat(document.getElementById('lib-fat').value) || 0;
   const data = {
     name:        document.getElementById('lib-name').value.trim(),
     servingSize: parseFloat(document.getElementById('lib-serving-size').value) || 1,
     servingUnit: document.getElementById('lib-serving-unit').value.trim(),
-    cal:         parseFloat(document.getElementById('lib-cal').value) || 0,
-    protein:     parseFloat(document.getElementById('lib-prot').value) || 0,
-    carbs:       parseFloat(document.getElementById('lib-carb').value) || 0,
-    fat:         parseFloat(document.getElementById('lib-fat').value) || 0,
+    protein,
+    carbs,
+    fat,
+    cal: Math.round(protein * 4 + carbs * 4 + fat * 9),
   };
   if (editingLibraryId) {
     Store.updateLibraryItem(editingLibraryId, data);
