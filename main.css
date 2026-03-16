@@ -173,15 +173,15 @@ body {
 
 #mobile-nav a {
   display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
+  align-items: center; gap: 2px;
   color: var(--sidebar-muted);
   text-decoration: none;
-  font-size: 18px;
-  padding: 4px 10px;
+  font-size: 16px;
+  padding: 4px 6px;
   border-radius: var(--radius-sm);
   transition: color var(--transition);
 }
-#mobile-nav a small { font-size: 10px; font-family: var(--font-sans); }
+#mobile-nav a small { font-size: 9px; font-family: var(--font-sans); }
 #mobile-nav a.active { color: var(--sidebar-active); }
 
 /* ─── Pages ────────────────────────────────────────── */
